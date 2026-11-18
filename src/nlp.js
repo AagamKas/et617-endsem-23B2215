@@ -56,6 +56,20 @@ export function flip(word) {
   return word
 }
 
+// "Accept and bridge": turn a dialect हम-sentence into the school-Hindi first-person form
+// for this learner (हम रोज स्कूल जाते हैं → मैं रोज स्कूल जाती हूँ). Shown as a tip, never as an error.
+export function schoolForm(text, learnerGender) {
+  const end = learnerGender === 'f' ? 'ी' : 'ा'
+  return text.trim().replace(/[।.!?]+$/, '').split(/\s+/).map(w => {
+    if (w === 'हम') return 'मैं'
+    if (w === 'हैं') return 'हूँ'
+    if (w === 'रहे') return learnerGender === 'f' ? 'रही' : 'रहा'
+    if (w === 'गए') return learnerGender === 'f' ? 'गई' : 'गया'
+    if (/ते$/.test(w)) return w.replace(/े$/, end)
+    return w
+  }).join(' ') + '।'
+}
+
 // learnerGender ('m' | 'f') is needed for sentences with मैं, where Hindi verbs agree with the speaker.
 export function checkAgreement(text, learnerGender = 'f') {
   const raw = text.trim().split(/\s+/)
@@ -84,7 +98,10 @@ export function checkAgreement(text, learnerGender = 'f') {
   // Dialect: हम (Bhojpuri/Bihari-influenced "I") with -ते/-े forms is accepted, not an error.
   if (gender === 'hum') {
     const bad = agreeing.find(w => genderOf(w) !== 'mpl')
-    if (!bad) return { type: 'dialect', ok: true, subject: 'हम', notes: [...notes, '"हम" का प्रयोग "मैं" के लिए — यह आपके इलाके की बोली है, बिल्कुल सही है। (Dialect variation, accepted.)'] }
+    if (!bad) return {
+      type: 'dialect', ok: true, subject: 'हम', bridge: schoolForm(text, learnerGender),
+      notes: [...notes, 'घर की बोली में "हम जाते हैं" बिल्कुल सही है। (Dialect variation, accepted — not an error.)'],
+    }
     return { type: 'agreement', ok: false, subject: 'हम', wrong: bad, fix: bad.replace(/[ाी]$/, 'े'), notes }
   }
   if (!gender) return { type: 'unknown', notes }

@@ -27,7 +27,7 @@ export function feedbackFor(r, level, gender) {
   return { tone: 'hint', hi: 'हमें वाक्य में संज्ञा नहीं मिली। पूरा वाक्य बोलो या लिखो।', en: "We couldn't find the noun — try a full sentence." }
 }
 
-function Feedback({ fb, notes = [], model, onRetry, onNext }) {
+function Feedback({ fb, notes = [], bridge, model, onRetry, onNext }) {
   const box = { good: 'bg-emerald-50 border-emerald-400', hint: 'bg-amber-50 border-amber-400', bad: 'bg-rose-50 border-rose-400' }[fb.tone]
   return (
     <div className={`border-2 rounded-2xl p-4 space-y-2 ${box}`} aria-live="polite">
@@ -37,6 +37,14 @@ function Feedback({ fb, notes = [], model, onRetry, onNext }) {
       </div>
       <p className="text-sm text-slate-500">{fb.en}</p>
       {notes.map((n, i) => <p key={i} className="text-sm bg-white/70 rounded-lg p-2">🗣️ {n}</p>)}
+      {bridge && (
+        <div className="bg-sky-50 border-2 border-sky-300 rounded-xl p-3 space-y-1">
+          <p className="text-sm font-bold text-sky-800">📝 स्कूल की हिंदी में (school Hindi) — एक टिप, गलती नहीं</p>
+          <p>अगर सिर्फ़ अपनी बात हो, तो लिखते समय ऐसे लिखते हैं:</p>
+          <p className="text-xl font-semibold flex items-center gap-2">{bridge} <Speaker text={bridge} /></p>
+          <p className="text-xs text-slate-500">Both are right — home language at home, this form in school writing.</p>
+        </div>
+      )}
       {model && <p className="font-semibold">सही उत्तर: <span className="text-emerald-700">{model}</span></p>}
       <div className="flex gap-2 pt-1">
         {onRetry && <Btn onClick={onRetry} kind="ghost">🔁 फिर से करो</Btn>}
@@ -67,7 +75,7 @@ export default function Task({ id, task, profile, onDone }) {
   const fb = result && feedbackFor(result.r, level, profile.gender)
   const model = result && !result.correct && tries >= 2 ? modelAnswer(task, profile.gender) : null
   const fbEl = result && (
-    <Feedback fb={fb} notes={result.r.notes} model={model}
+    <Feedback fb={fb} notes={result.r.notes} bridge={result.r.bridge} model={model}
       onRetry={!result.correct && tries < 2 ? retry : null}
       onNext={result.correct || tries >= 2 ? finish : null} />
   )
