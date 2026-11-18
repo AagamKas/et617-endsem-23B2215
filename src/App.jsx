@@ -2,12 +2,58 @@ import { useEffect, useState } from 'react'
 import { AVATARS, BASE_PLAN, G_NAME, LEARN, RETEACH, RULE, RULE_EN, RULE_SMALL, TASKS } from './data'
 import { SESSION_SECONDS, fmt, newProfile, useStore } from './store'
 import Task from './Task'
-import { Btn, Speaker } from './ui'
+import { Btn, GenderPick, Speaker } from './ui'
 
 const REMEDIAL = { M1: 'rM1', M2: 'rM2', agreement: 'ragree' }
 const AUTO_READ_AFTER = 3 // interaction adaptivity: after 3 taps on 🔊, read every new prompt aloud automatically
 const STEP_LABEL = { rM1: '🔁 याद', rM2: '🔁 याद', ragree: '🔁 याद', learn: '📖 समझो', t1: '💧 चुनो', t2: '📕 चुनो', t3: '🗂️ छाँटो', t4: '✏️ ठीक करो', why: '🤔 क्यों?', t5: '🧩 बनाओ', t6: '🎤 बोलो', done: '⭐ पूरा' }
 const gWord = (g, m, f) => (g === 'f' ? f : m)
+const isOk = l => l.type === 'ok' || l.type === 'dialect'
+// Stars reward learning, not just being right: ⭐⭐ right first time, ⭐ right after the hint, none after the model answer.
+export const starsFor = log => (log[0] && isOk(log[0]) ? 2 : log[1] && isOk(log[1]) ? 1 : 0)
+const OUTCOMES = [
+  ['O1', 'लिंग पहचानना', 'Identify noun gender', ['t3', 'rM1', 'rM2']],
+  ['O2', 'सही शब्द चुनना/बनाना', 'Choose & produce agreeing forms', ['t1', 't2', 't4', 't5', 't6', 'ragree']],
+  ['O3', '"क्यों" समझाना', 'Explain why', ['why']],
+]
+
+// Progress chart: every step's status + a bar per learning outcome (current session).
+function ProgressChart({ me }) {
+  const log = me.log.filter(l => l.session === me.sessions)
+  const statusOf = i => {
+    if (me.plan[i] === 'done') return i === me.pos && !me.ended ? 'good' : 'todo'
+    if (i > me.pos || (i === me.pos && me.plan[i] !== 'done')) return i === me.pos ? 'now' : 'todo'
+    const entries = log.filter(l => l.pos === i)
+    if (!entries.length) return me.plan[i] === 'learn' || me.plan[i]?.startsWith('reteach') ? 'good' : 'todo'
+    return isOk(entries[0]) ? 'good' : 'helped'
+  }
+  const STYLE = { good: ['bg-emerald-100', '✅'], helped: ['bg-amber-100', '🟡'], now: ['bg-indigo-100 ring-2 ring-indigo-400', '▶'], todo: ['bg-slate-100', '⬜'] }
+  return (
+    <div className="bg-white rounded-2xl p-4 shadow-sm space-y-3">
+      <h2 className="font-bold">मेरी प्रगति <span className="text-sm font-normal text-slate-500">(my progress)</span></h2>
+      <ol className="grid grid-cols-4 gap-2 text-center text-xs">
+        {me.plan.map((s, i) => [s, i]).filter(([s]) => STEP_LABEL[s]).map(([s, i]) => {
+          const [cls, icon] = STYLE[statusOf(i)]
+          return <li key={i} className={`rounded-xl p-2 ${cls}`}>{icon}<br />{STEP_LABEL[s]}</li>
+        })}
+      </ol>
+      <p className="text-xs text-slate-500">✅ पहली बार में सही · 🟡 मदद से सीखा · ▶ अभी · ⬜ बाकी</p>
+      <div className="space-y-2">
+        {OUTCOMES.map(([id, hi, en, steps]) => {
+          const tried = log.filter(l => steps.includes(l.step) && l.attempt === 1)
+          const good = tried.filter(isOk).length
+          const pct = tried.length ? Math.round((good / tried.length) * 100) : 0
+          return (
+            <div key={id}>
+              <div className="flex justify-between text-sm"><span><b>{id}</b> {hi} <span className="text-slate-500 text-xs">({en})</span></span><span>{tried.length ? `${good}/${tried.length}` : '—'}</span></div>
+              <div className="h-2.5 bg-slate-100 rounded-full overflow-hidden"><div className="h-full bg-emerald-500 transition-all" style={{ width: `${pct}%` }} /></div>
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
 
 export default function App() {
   const [db, setDb] = useStore()
@@ -20,7 +66,7 @@ export default function App() {
   else if (!me || screen === 'profiles') body = <Profiles db={db} setDb={setDb} go={() => setScreen('home')} />
   else if (screen === 'home') body = <Home me={me} start={() => setScreen('session')} switchUser={() => setScreen('profiles')} restart={() => {
     // Profile adaptivity: a returning learner's new session opens with items targeting misconceptions diagnosed last time.
-    update(p => ({ ...p, plan: [...p.diagnosed.filter(d => REMEDIAL[d]).map(d => REMEDIAL[d]), ...BASE_PLAN], pos: 0, elapsed: 0, sessions: p.sessions + 1 }))
+    update(p => ({ ...p, plan: [...p.diagnosed.filter(d => REMEDIAL[d]).map(d => REMEDIAL[d]), ...BASE_PLAN], pos: 0, elapsed: 0, ended: false, sessions: p.sessions + 1 }))
     setScreen('session')
   }} />
   else body = <Session me={me} update={update} stop={() => setScreen('home')} />
@@ -76,12 +122,7 @@ function Profiles({ db, setDb, go }) {
           <div className="flex flex-wrap gap-2">
             {AVATARS.map(a => <button type="button" key={a} onClick={() => setAvatar(a)} className={`w-12 h-12 text-2xl rounded-xl ${avatar === a ? 'bg-indigo-100 ring-2 ring-indigo-500' : 'bg-slate-50'}`}>{a}</button>)}
           </div>
-          <div>
-            <p className="text-sm mb-1">तुम लड़का हो या लड़की? <span className="text-slate-500">(Hindi verbs change with "मैं" — we need this for the speaking task)</span></p>
-            <div className="grid grid-cols-2 gap-2">
-              {[['m', '👦 लड़का'], ['f', '👧 लड़की']].map(([g, l]) => <button type="button" key={g} onClick={() => setGender(g)} className={`py-3 rounded-xl text-lg border-2 ${gender === g ? 'border-indigo-500 bg-indigo-50' : 'border-slate-200'}`}>{l}</button>)}
-            </div>
-          </div>
+          <GenderPick gender={gender} setGender={setGender} />
           <Btn wide disabled={!name.trim() || !gender}>शुरू करो →</Btn>
         </form>
       ) : (
@@ -94,7 +135,7 @@ function Profiles({ db, setDb, go }) {
 // ---------- Screen 2: welcome / resume ----------
 function Home({ me, start, switchUser, restart }) {
   const step = me.plan[me.pos]
-  const finished = step === 'done' && me.pos === me.plan.length - 1 && me.log.length > 0
+  const finished = step === 'done'
   const resuming = me.pos > 0 && !finished
   return (
     <div className="space-y-5 pt-4">
@@ -103,15 +144,8 @@ function Home({ me, start, switchUser, restart }) {
         <h1 className="text-3xl font-bold">नमस्ते, {me.name}!</h1>
         <p className="text-slate-600">⭐ {me.stars} तारे · ⏱ {fmt(me.elapsed)} / 10:00</p>
       </div>
-      <div className="bg-white rounded-2xl p-4 shadow-sm">
-        <h2 className="font-bold mb-2">आज का खेल — 10 मिनट <span className="text-sm font-normal text-slate-500">(today's 10-minute plan)</span></h2>
-        <ol className="grid grid-cols-4 gap-2 text-center text-xs">
-          {me.plan.map((s, i) => [s, i]).filter(([s]) => STEP_LABEL[s]).map(([s, i]) => {
-            const done = i < me.pos
-            return <li key={i} className={`rounded-xl p-2 ${done ? 'bg-emerald-100' : i === me.pos ? 'bg-indigo-100 ring-2 ring-indigo-400' : 'bg-slate-50'}`}>{done ? '✅' : ''} {STEP_LABEL[s]}</li>
-          })}
-        </ol>
-      </div>
+      <ProgressChart me={me} />
+      <p className="text-xs text-center text-slate-500">⭐⭐ पहली बार में सही · ⭐ हिंट के बाद सही (stars: 2 = right first time, 1 = right after a hint)</p>
       {finished ? (
         <Btn wide onClick={restart}>🔁 नया खेल शुरू करो</Btn>
       ) : (
@@ -124,6 +158,7 @@ function Home({ me, start, switchUser, restart }) {
 
 // ---------- Screen 3+: the 10-minute session ----------
 function Session({ me, update, stop }) {
+  const [ending, setEnding] = useState(false)
   const step = me.plan[me.pos]
   const over = me.elapsed >= SESSION_SECONDS
 
@@ -151,7 +186,7 @@ function Session({ me, update, stop }) {
       const plan = [...p.plan]
       const rem = REMEDIAL[diagnosed]
       if (diagnosed && rem && !plan.includes(`reteach:${diagnosed}`)) plan.splice(p.pos + 1, 0, `reteach:${diagnosed}`, rem)
-      return { ...p, plan, pos: p.pos + 1, stars: p.stars + (firstTry ? 2 : 1), log: [...p.log, ...log], diagnosed: diagnosed && !p.diagnosed.includes(diagnosed) ? [...p.diagnosed, diagnosed] : p.diagnosed }
+      return { ...p, plan, pos: p.pos + 1, stars: p.stars + starsFor(log), log: [...p.log, ...log.map(l => ({ ...l, session: p.sessions, pos: p.pos }))], diagnosed: diagnosed && !p.diagnosed.includes(diagnosed) ? [...p.diagnosed, diagnosed] : p.diagnosed }
     })
   }
 
@@ -163,7 +198,8 @@ function Session({ me, update, stop }) {
   else content = (
     <>
       {warmUp && <p className="bg-sky-50 border-2 border-sky-300 rounded-xl p-3 text-sm">🔁 <b>पिछली बार की याद:</b> पिछली बार यह थोड़ा मुश्किल लगा था — चलो पहले इसे देखें। <span className="text-slate-500">(Warm-up based on last session's misconception.)</span></p>}
-      <Task key={me.pos} id={step} task={TASKS[step]} profile={me} autoRead={autoRead} onDone={taskDone} />
+      <Task key={me.pos} id={step} task={TASKS[step]} profile={me} autoRead={autoRead} onDone={taskDone}
+        setGender={g => update(p => ({ ...p, gender: g }))} />
     </>
   )
 
@@ -176,8 +212,18 @@ function Session({ me, update, stop }) {
             <span className={`font-mono px-2 py-1 rounded-lg ${over ? 'bg-rose-100 text-rose-700' : 'bg-white'}`}>⏱ {fmt(me.elapsed)} / 10:00</span>
             <span className="text-slate-500">कदम {me.pos + 1}/{me.plan.length - 1}</span>
             {autoRead && <span className="text-xs bg-amber-100 rounded-lg px-2 py-1" title="Auto-read is on because you often tap 🔊">🔊 अपने-आप</span>}
-            <button onClick={stop} className="ml-auto px-3 py-2 rounded-xl bg-white border-2 border-slate-200 font-semibold">⏸ अभी रुको</button>
+            <button onClick={stop} className="ml-auto px-3 py-2 rounded-xl bg-white border-2 border-slate-200 font-semibold" title="Pause — continue later from here">⏸ रुको</button>
+            <button onClick={() => setEnding(true)} className="px-3 py-2 rounded-xl bg-white border-2 border-rose-200 text-rose-700 font-semibold" title="End today's session">⏹ खत्म</button>
           </div>
+          {ending && (
+            <div className="bg-rose-50 border-2 border-rose-200 rounded-xl p-3 space-y-2">
+              <p className="font-semibold">क्या आज का खेल यहीं खत्म करें? <span className="text-sm font-normal text-slate-500">(End today's session? You'll see what you finished. "⏸ रुको" instead lets you continue later.)</span></p>
+              <div className="flex gap-2">
+                <Btn onClick={() => { setEnding(false); update(p => ({ ...p, pos: p.plan.length - 1, ended: true })) }} className="bg-rose-600! shadow-none">हाँ, खत्म करो</Btn>
+                <Btn kind="ghost" onClick={() => setEnding(false)}>नहीं, जारी रखो</Btn>
+              </div>
+            </div>
+          )}
           <div className="h-3 bg-white rounded-full overflow-hidden"><div className="h-full bg-indigo-500 transition-all" style={{ width: `${progress}%` }} /></div>
           {over && <p className="text-sm bg-rose-50 border border-rose-200 rounded-xl p-2">⏰ 10 मिनट पूरे! तुम रुक सकते हो — अगली बार यहीं से शुरू करेंगे। <span className="text-slate-500">(Time's up — you can stop; progress is saved.)</span></p>}
         </header>
@@ -238,13 +284,15 @@ function Reteach({ type, onDone }) {
 }
 
 function Done({ me, home }) {
-  const firstTry = me.log.filter(l => l.attempt === 1 && (l.type === 'ok' || l.type === 'dialect')).length
-  const tasks = new Set(me.log.map(l => l.step)).size
+  const log = me.log.filter(l => l.session === me.sessions)
+  const firstTry = log.filter(l => l.attempt === 1 && isOk(l)).length
+  const tasks = log.filter(l => l.attempt === 1).length
   return (
     <div className="space-y-4 text-center pt-2">
-      <div className="text-6xl">🎉</div>
-      <h2 className="text-3xl font-bold">बहुत बढ़िया, {me.name}!</h2>
+      <div className="text-6xl">{me.ended ? '👋' : '🎉'}</div>
+      <h2 className="text-3xl font-bold">{me.ended ? `आज इतना किया, ${me.name}!` : `बहुत बढ़िया, ${me.name}!`}</h2>
       <p className="text-lg">⭐ {me.stars} तारे · ⏱ {fmt(me.elapsed)} मिनट · पहली बार में सही: {firstTry}/{tasks}</p>
+      <div className="text-left"><ProgressChart me={me} /></div>
       <div className="bg-white rounded-2xl p-4 text-left space-y-2">
         <h3 className="font-bold">📌 आज हमने सीखा</h3>
         <p>{RULE}</p>

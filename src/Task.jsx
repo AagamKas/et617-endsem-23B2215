@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react'
 import { checkAgreement, nounInfo } from './nlp'
 import { G_NAME } from './data'
 import { canListen, listen, speak } from './speech'
-import { Btn, Speaker } from './ui'
+import { Btn, GenderPick, Speaker } from './ui'
+import HindiInput, { hasRoman } from './HindiInput'
 
 // Feedback text. Level 1 (first wrong try) = a hint that makes the learner test their own idea
 // without giving the answer. Level 2 (second wrong try) = full explanation + model answer.
@@ -31,7 +32,7 @@ export function feedbackFor(r, level, gender) {
   return { tone: 'hint', hi: 'हमें वाक्य में संज्ञा नहीं मिली। पूरा वाक्य बोलो या लिखो।', en: "We couldn't find the noun — try a full sentence." }
 }
 
-function Feedback({ fb, notes = [], bridge, model, onRetry, onNext }) {
+function Feedback({ fb, notes = [], bridge, model, stars, onRetry, onNext }) {
   const box = { good: 'bg-emerald-50 border-emerald-400', hint: 'bg-amber-50 border-amber-400', bad: 'bg-rose-50 border-rose-400' }[fb.tone]
   return (
     <div className={`border-2 rounded-2xl p-4 space-y-2 ${box}`} aria-live="polite">
@@ -50,6 +51,7 @@ function Feedback({ fb, notes = [], bridge, model, onRetry, onNext }) {
         </div>
       )}
       {model && <p className="font-semibold">सही उत्तर: <span className="text-emerald-700">{model}</span></p>}
+      {stars != null && <p className="text-sm">{stars === 2 ? '⭐⭐ पहली बार में सही!' : stars === 1 ? '⭐ हिंट के बाद सही — बढ़िया!' : '💪 कोशिश के लिए शाबाश — अगली बार ज़रूर!'}</p>}
       <div className="flex gap-2 pt-1">
         {onRetry && <Btn onClick={onRetry} kind="ghost">🔁 फिर से करो</Btn>}
         {onNext && <Btn onClick={onNext}>आगे चलो →</Btn>}
@@ -66,7 +68,7 @@ function promptText(task, gender) {
   return task.title
 }
 
-export default function Task({ id, task, profile, autoRead, onDone }) {
+export default function Task({ id, task, profile, autoRead, onDone, setGender }) {
   // Interaction adaptivity: learners who keep tapping 🔊 get every new prompt read aloud automatically.
   useEffect(() => { if (autoRead) speak(promptText(task, profile.gender)) }, []) // eslint-disable-line react-hooks/exhaustive-deps
   const [tries, setTries] = useState(0)
@@ -90,6 +92,7 @@ export default function Task({ id, task, profile, autoRead, onDone }) {
   const model = result && !result.correct && tries >= 2 ? modelAnswer(task, profile.gender) : null
   const fbEl = result && (
     <Feedback fb={fb} notes={result.r.notes} bridge={result.r.bridge} model={model}
+      stars={result.correct ? (tries === 1 ? 2 : 1) : tries >= 2 ? 0 : null}
       onRetry={!result.correct && tries < 2 ? retry : null}
       onNext={result.correct || tries >= 2 ? finish : null} />
   )
@@ -108,7 +111,7 @@ export default function Task({ id, task, profile, autoRead, onDone }) {
       {task.kind === 'sort' && <Sort task={task} locked={!!result} onSubmit={submit} />}
       {task.kind === 'fix' && <Fix task={task} profile={profile} locked={!!result} onSubmit={submit} />}
       {task.kind === 'tiles' && <Tiles task={task} profile={profile} locked={!!result} onSubmit={submit} />}
-      {task.kind === 'speak' && <Speak profile={profile} locked={!!result} onSubmit={submit} />}
+      {task.kind === 'speak' && <Speak profile={profile} locked={!!result} onSubmit={submit} setGender={setGender} />}
       {fbEl}
     </div>
   )
@@ -201,7 +204,6 @@ function Sort({ task, locked, onSubmit }) {
 }
 
 // ---------- Format 3: fix the sentence (typed, with spelling feedback) ----------
-const KEYS = ['ा', 'ी', 'ि', 'ई', 'इ', 'या', 'आ', 'े', 'ं', '।']
 function Fix({ task, profile, locked, onSubmit }) {
   const [text, setText] = useState(task.wrongSentence)
   function check() {
@@ -213,13 +215,9 @@ function Fix({ task, profile, locked, onSubmit }) {
   return (
     <div className="space-y-3">
       <div className="bg-white rounded-2xl p-4 text-2xl text-center"><s className="text-rose-500">{task.wrongSentence}</s> <Speaker text={task.wrongSentence} /></div>
-      <input value={text} disabled={locked} onChange={e => setText(e.target.value)} lang="hi"
-        className="w-full text-2xl p-4 rounded-2xl border-2 border-indigo-200 focus:outline-none focus:border-indigo-500 bg-white" />
-      <div className="flex flex-wrap gap-2">
-        {KEYS.map(k => <button key={k} disabled={locked} onClick={() => setText(t => t + k)} className="w-12 h-12 text-xl rounded-xl bg-white border shadow-sm active:scale-95">{k}</button>)}
-        <button disabled={locked} onClick={() => setText(t => [...t].slice(0, -1).join(''))} className="px-3 h-12 rounded-xl bg-white border shadow-sm">⌫</button>
-      </div>
-      {!locked && <Btn onClick={check} wide>जाँचो ✓</Btn>}
+      <p className="text-sm">ऊपर का गलत वाक्य नीचे ठीक करके लिखो। <span className="text-slate-500">(Edit the sentence below to make it correct.)</span></p>
+      <HindiInput value={text} onChange={setText} disabled={locked} />
+      {!locked && <Btn onClick={check} wide disabled={hasRoman(text)}>जाँचो ✓</Btn>}
     </div>
   )
 }
@@ -250,7 +248,7 @@ function Tiles({ task, profile, locked, onSubmit }) {
 }
 
 // ---------- Format 5: speak (speech recognition in, speech out) ----------
-function Speak({ profile, locked, onSubmit }) {
+function Speak({ profile, locked, onSubmit, setGender }) {
   const [heard, setHeard] = useState('')
   const [state, setState] = useState('idle')
   const [typed, setTyped] = useState('')
@@ -271,6 +269,7 @@ function Speak({ profile, locked, onSubmit }) {
         <span className="flex-1 font-semibold">{q}</span><Speaker text={q} />
       </div>
       <p className="text-sm text-slate-500">पूरा वाक्य बोलो, जैसे: "{eg}" · अपनी बोली में बोलो, कोई बात नहीं!</p>
+      {!locked && <details className="text-sm bg-white rounded-xl p-2"><summary className="cursor-pointer">तुमने चुना: <b>"{profile.gender === 'f' ? 'मैं जाती हूँ' : 'मैं जाता हूँ'}"</b> — बदलना है? (change)</summary><div className="pt-2"><GenderPick compact gender={profile.gender} setGender={setGender} /></div></details>}
       {canListen && (
         <button disabled={locked || state === 'listening'} onClick={mic}
           className={`w-full py-8 rounded-3xl text-2xl font-bold text-white shadow-lg active:scale-95 ${state === 'listening' ? 'bg-rose-500 animate-pulse' : 'bg-indigo-600'}`}>
@@ -281,9 +280,9 @@ function Speak({ profile, locked, onSubmit }) {
       {(!canListen || state === 'error') && <p className="text-sm text-amber-700">माइक नहीं चल रहा — नीचे लिखकर भी जवाब दे सकते हो। (Mic unavailable — type instead.)</p>}
       <details className="text-sm" open={!canListen || state === 'error'}>
         <summary className="cursor-pointer text-slate-500">बोल नहीं पा रहे? लिखकर बताओ (type instead)</summary>
-        <div className="flex gap-2 mt-2">
-          <input value={typed} disabled={locked} onChange={e => setTyped(e.target.value)} lang="hi" placeholder={eg} className="flex-1 min-w-0 text-lg p-3 rounded-xl border-2 border-indigo-200 bg-white" />
-          <Btn disabled={locked || !typed.trim()} onClick={() => run(typed)}>भेजो</Btn>
+        <div className="space-y-2 mt-2">
+          <HindiInput value={typed} onChange={setTyped} disabled={locked} placeholder={eg} />
+          <Btn wide disabled={locked || !typed.trim() || hasRoman(typed)} onClick={() => run(typed)}>भेजो ✓</Btn>
         </div>
       </details>
     </div>

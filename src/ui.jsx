@@ -5,6 +5,22 @@ export function Btn({ kind = 'primary', wide, className = '', ...p }) {
   return <button {...p} className={`${k} ${wide ? 'w-full' : ''} px-5 py-3 rounded-2xl text-lg font-semibold active:scale-95 transition disabled:opacity-40 ${className}`} />
 }
 
+// Asked as a language choice ("how do you say it about yourself?"), not a personal question.
+// Hindi verbs with मैं agree with the speaker, so the checker needs to know which form to expect.
+export function GenderPick({ gender, setGender, compact }) {
+  return (
+    <div>
+      <p className="text-sm mb-1 font-semibold">अपने बारे में बोलते समय तुम कैसे कहते हो? <Speaker text="अपने बारे में बोलते समय तुम कैसे कहते हो? मैं जाता हूँ, या मैं जाती हूँ?" /></p>
+      {!compact && <p className="text-xs text-slate-500 mb-2">(How do you say it about yourself? Hindi verbs change with "मैं". You can change this later.)</p>}
+      <div className="grid grid-cols-2 gap-2">
+        {[['m', '🙋‍♂️', 'मैं जाता हूँ'], ['f', '🙋‍♀️', 'मैं जाती हूँ']].map(([g, e, l]) => (
+          <button type="button" key={g} onClick={() => setGender(g)} className={`py-3 rounded-xl text-lg border-2 ${gender === g ? 'border-indigo-500 bg-indigo-50 font-bold' : 'border-slate-200 bg-white'}`}>{e} "{l}"</button>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 export function Speaker({ text }) {
   return (
     <button type="button" onClick={e => { e.stopPropagation(); speak(text); window.dispatchEvent(new Event('listen-tap')) }} aria-label="सुनो (listen)" title="सुनो (listen)"
