@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { checkAgreement, nounInfo } from './nlp'
 import { G_NAME } from './data'
 import { canListen, listen, speak } from './speech'
@@ -58,7 +58,17 @@ function Feedback({ fb, notes = [], bridge, model, onRetry, onNext }) {
   )
 }
 
-export default function Task({ id, task, profile, onDone }) {
+function promptText(task, gender) {
+  if (task.kind === 'mcq') return task.sentence.replace('___', '…')
+  if (task.kind === 'why') return task.question
+  if (task.kind === 'fix') return `${task.title}। ${task.wrongSentence}`
+  if (task.kind === 'speak') return gender === 'f' ? 'तुम रोज़ स्कूल कैसे जाती हो?' : 'तुम रोज़ स्कूल कैसे जाते हो?'
+  return task.title
+}
+
+export default function Task({ id, task, profile, autoRead, onDone }) {
+  // Interaction adaptivity: learners who keep tapping 🔊 get every new prompt read aloud automatically.
+  useEffect(() => { if (autoRead) speak(promptText(task, profile.gender)) }, []) // eslint-disable-line react-hooks/exhaustive-deps
   const [tries, setTries] = useState(0)
   const [result, setResult] = useState(null) // { r, correct }
   const [attempts, setAttempts] = useState([])

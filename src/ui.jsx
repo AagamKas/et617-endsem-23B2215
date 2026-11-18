@@ -7,7 +7,7 @@ export function Btn({ kind = 'primary', wide, className = '', ...p }) {
 
 export function Speaker({ text }) {
   return (
-    <button type="button" onClick={e => { e.stopPropagation(); speak(text) }} aria-label="सुनो (listen)" title="सुनो (listen)"
+    <button type="button" onClick={e => { e.stopPropagation(); speak(text); window.dispatchEvent(new Event('listen-tap')) }} aria-label="सुनो (listen)" title="सुनो (listen)"
       className="shrink-0 w-11 h-11 rounded-full bg-amber-100 text-xl active:scale-90">🔊</button>
   )
 }

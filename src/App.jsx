@@ -5,7 +5,8 @@ import Task from './Task'
 import { Btn, Speaker } from './ui'
 
 const REMEDIAL = { M1: 'rM1', M2: 'rM2', agreement: 'ragree' }
-const STEP_LABEL = { learn: '📖 समझो', t1: '💧 चुनो', t2: '📕 चुनो', t3: '🗂️ छाँटो', t4: '✏️ ठीक करो', why: '🤔 क्यों?', t5: '🧩 बनाओ', t6: '🎤 बोलो', done: '⭐ पूरा' }
+const AUTO_READ_AFTER = 3 // interaction adaptivity: after 3 taps on 🔊, read every new prompt aloud automatically
+const STEP_LABEL = { rM1: '🔁 याद', rM2: '🔁 याद', ragree: '🔁 याद', learn: '📖 समझो', t1: '💧 चुनो', t2: '📕 चुनो', t3: '🗂️ छाँटो', t4: '✏️ ठीक करो', why: '🤔 क्यों?', t5: '🧩 बनाओ', t6: '🎤 बोलो', done: '⭐ पूरा' }
 const gWord = (g, m, f) => (g === 'f' ? f : m)
 
 export default function App() {
@@ -17,7 +18,11 @@ export default function App() {
   let body
   if (screen === 'about') body = <About back={() => setScreen(me ? 'home' : 'profiles')} />
   else if (!me || screen === 'profiles') body = <Profiles db={db} setDb={setDb} go={() => setScreen('home')} />
-  else if (screen === 'home') body = <Home me={me} start={() => setScreen('session')} switchUser={() => setScreen('profiles')} restart={() => { update(p => ({ ...p, plan: [...BASE_PLAN], pos: 0, elapsed: 0, sessions: p.sessions + 1 })); setScreen('session') }} />
+  else if (screen === 'home') body = <Home me={me} start={() => setScreen('session')} switchUser={() => setScreen('profiles')} restart={() => {
+    // Profile adaptivity: a returning learner's new session opens with items targeting misconceptions diagnosed last time.
+    update(p => ({ ...p, plan: [...p.diagnosed.filter(d => REMEDIAL[d]).map(d => REMEDIAL[d]), ...BASE_PLAN], pos: 0, elapsed: 0, sessions: p.sessions + 1 }))
+    setScreen('session')
+  }} />
   else body = <Session me={me} update={update} stop={() => setScreen('home')} />
 
   return (
@@ -101,9 +106,9 @@ function Home({ me, start, switchUser, restart }) {
       <div className="bg-white rounded-2xl p-4 shadow-sm">
         <h2 className="font-bold mb-2">आज का खेल — 10 मिनट <span className="text-sm font-normal text-slate-500">(today's 10-minute plan)</span></h2>
         <ol className="grid grid-cols-4 gap-2 text-center text-xs">
-          {me.plan.filter(s => STEP_LABEL[s]).map(s => {
-            const i = me.plan.indexOf(s), done = i < me.pos
-            return <li key={s} className={`rounded-xl p-2 ${done ? 'bg-emerald-100' : i === me.pos ? 'bg-indigo-100 ring-2 ring-indigo-400' : 'bg-slate-50'}`}>{done ? '✅' : ''} {STEP_LABEL[s]}</li>
+          {me.plan.map((s, i) => [s, i]).filter(([s]) => STEP_LABEL[s]).map(([s, i]) => {
+            const done = i < me.pos
+            return <li key={i} className={`rounded-xl p-2 ${done ? 'bg-emerald-100' : i === me.pos ? 'bg-indigo-100 ring-2 ring-indigo-400' : 'bg-slate-50'}`}>{done ? '✅' : ''} {STEP_LABEL[s]}</li>
           })}
         </ol>
       </div>
@@ -129,6 +134,15 @@ function Session({ me, update, stop }) {
     return () => clearInterval(t)
   }, [step]) // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Interaction log: count taps on 🔊 (used to switch on auto-read for learners who rely on listening)
+  useEffect(() => {
+    const onTap = () => update(p => ({ ...p, listenTaps: (p.listenTaps || 0) + 1 }))
+    window.addEventListener('listen-tap', onTap)
+    return () => window.removeEventListener('listen-tap', onTap)
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  const autoRead = (me.listenTaps || 0) >= AUTO_READ_AFTER
+  const warmUp = me.pos < me.plan.indexOf('learn')
+
   const next = () => update(p => ({ ...p, pos: Math.min(p.pos + 1, p.plan.length - 1) }))
 
   // Adaptivity: a diagnosed misconception inserts a re-teach card + an easier targeted item next.
@@ -136,7 +150,7 @@ function Session({ me, update, stop }) {
     update(p => {
       const plan = [...p.plan]
       const rem = REMEDIAL[diagnosed]
-      if (diagnosed && rem && !plan.includes(rem)) plan.splice(p.pos + 1, 0, `reteach:${diagnosed}`, rem)
+      if (diagnosed && rem && !plan.includes(`reteach:${diagnosed}`)) plan.splice(p.pos + 1, 0, `reteach:${diagnosed}`, rem)
       return { ...p, plan, pos: p.pos + 1, stars: p.stars + (firstTry ? 2 : 1), log: [...p.log, ...log], diagnosed: diagnosed && !p.diagnosed.includes(diagnosed) ? [...p.diagnosed, diagnosed] : p.diagnosed }
     })
   }
@@ -146,7 +160,12 @@ function Session({ me, update, stop }) {
   if (step === 'learn') content = <Learn gender={me.gender} onDone={next} />
   else if (step?.startsWith('reteach:')) content = <Reteach type={step.split(':')[1]} gender={me.gender} onDone={next} />
   else if (step === 'done') content = <Done me={me} home={stop} />
-  else content = <Task key={me.pos} id={step} task={TASKS[step]} profile={me} onDone={taskDone} />
+  else content = (
+    <>
+      {warmUp && <p className="bg-sky-50 border-2 border-sky-300 rounded-xl p-3 text-sm">🔁 <b>पिछली बार की याद:</b> पिछली बार यह थोड़ा मुश्किल लगा था — चलो पहले इसे देखें। <span className="text-slate-500">(Warm-up based on last session's misconception.)</span></p>}
+      <Task key={me.pos} id={step} task={TASKS[step]} profile={me} autoRead={autoRead} onDone={taskDone} />
+    </>
+  )
 
   return (
     <div className="space-y-4">
@@ -156,6 +175,7 @@ function Session({ me, update, stop }) {
             <span className="text-2xl">{me.avatar}</span>
             <span className={`font-mono px-2 py-1 rounded-lg ${over ? 'bg-rose-100 text-rose-700' : 'bg-white'}`}>⏱ {fmt(me.elapsed)} / 10:00</span>
             <span className="text-slate-500">कदम {me.pos + 1}/{me.plan.length - 1}</span>
+            {autoRead && <span className="text-xs bg-amber-100 rounded-lg px-2 py-1" title="Auto-read is on because you often tap 🔊">🔊 अपने-आप</span>}
             <button onClick={stop} className="ml-auto px-3 py-2 rounded-xl bg-white border-2 border-slate-200 font-semibold">⏸ अभी रुको</button>
           </div>
           <div className="h-3 bg-white rounded-full overflow-hidden"><div className="h-full bg-indigo-500 transition-all" style={{ width: `${progress}%` }} /></div>
@@ -244,7 +264,8 @@ function About({ back }) {
       <div className="bg-white rounded-2xl p-4 space-y-2 text-sm">
         <p><b>Identity token:</b> 23B2215 · ET 617 End-Semester Exam, 18 Nov 2026</p>
         <p><b>Card:</b> P2 (Contextual language &amp; literacy) · P2-T2 Hindi gender agreement (लिंग) in verbs and adjectives · L2 First-generation learner, NGO after-school centre with shared tablets · C4 10-minute sessions</p>
-        <p><b>What it does:</b> a 10-minute practice sequence (explain → 6 tasks in 5 formats → recap) with feedback that diagnoses two misconceptions: M1 "every -ई noun is feminine" and M2 "objects are masculine". A diagnosed misconception triggers a re-teach card and an extra targeted question.</p>
+        <p><b>What it does:</b> a 10-minute practice sequence (explain → 7 tasks in 6 formats → recap) with feedback that diagnoses two misconceptions: M1 "every -ई noun is feminine" and M2 "objects are masculine". Feedback is a hint first, then an explanation with the model answer.</p>
+        <p><b>Adaptivity:</b> performance (a diagnosed misconception inserts a re-teach card + targeted question), profile (a returning learner starts with last session's misconception; gender sets मैं-forms), interaction (after 3 taps on 🔊, every prompt is read aloud automatically).</p>
         <p><b>NLP:</b> rule-based Hindi agreement checker (noun-gender lexicon + ending analysis), spelling feedback, Hindi speech recognition and text-to-speech (browser Web Speech API). Dialect forms (हम for मैं) and pronunciation variants (ज़/ज, ड़/ड) are accepted, not marked wrong.</p>
         <p><b>C4:</b> 10-minute timer, auto-save after every step, "stop" button, and per-child profiles so each child on a shared tablet resumes where they left off.</p>
         <p><b>Built with:</b> Vite + React starter, Tailwind CSS, hosted on Vercel. Code written with AI assistance (Claude Code).</p>
