@@ -117,6 +117,16 @@ Stars: ⭐⭐ right first time · ⭐ right after the hint · none after the mod
 ```
 **Learner inputs:** tap choice, drag-and-drop, typed Hindi (on-screen keyboard, Roman→Devanagari), word tiles, speech. **System outputs:** two-level feedback, spoken feedback, re-teach cards, inserted remedial tasks, progress chart, stars.
 
+**Selected screens:**
+
+![Sorting with drag-and-drop, worked example and मेरा/मेरी box labels; C4 header with timer, exercise count, pause and end](screenshots/sort_drag.png)
+
+![On-screen Hindi keyboard and Roman → Hindi conversion ("sadak tuti hai")](screenshots/keyboard_convert.png)
+
+![Learner-chosen "one more of this type" sorting variant, all correct](screenshots/sort_redo_correct.png)
+
+![Inserted remedial item after an agreement error (लड़का खेल ___ है)](screenshots/remedial_agreement.png)
+
 ### C4 (10-minute sessions) — visible implementation
 - ⏱ **"x:xx / 10:00" timer** and an **"✅ x/y अभ्यास" exercises-completed counter** with progress bar on every session screen;
 - Extra "one more of this type" practice is **capped at 3 per session** so the sequence still fits in 10 minutes; one sequence (explain + 7 tasks + recap) takes ≈ 8–9.5 minutes.
@@ -129,20 +139,45 @@ Stars: ⭐⭐ right first time · ⭐ right after the hint · none after the mod
 
 ## D5 – Two contrasting learner scenarios (run on the live app)
 
-**(a) Correct learner** — Rani chooses **ठंडा**, **अच्छी**, sorts all six nouns correctly, types **बस आई।**, picks reason (a), builds **लड़की खेल रही है**, says **मैं रोज़ स्कूल जाती हूँ**.
-System: ✅ praise with the reason after each item, ⭐⭐ each, **no extra items**; summary shows all ✅ and full O1/O2/O3 bars.
+All screenshots were taken on the live app (dark mode), with ID 23B2215 in the footer.
 
-> [Screenshot a1 – task 1 correct feedback]
-> [Screenshot a2 – summary with progress chart]
+### (a) Learner who responds correctly
+For *पानी ___ है* she chooses **ठंडा** → ✅ *शाबाश! ✓ "पानी" पुल्लिंग है, इसलिए यही सही है।* with ⭐⭐ and **no extra items**; she moves straight on (or may choose "➕ इसी तरह का एक और").
 
-**(b) Learner with misconception M1** — Rani chooses **ठंडी** for *पानी ___ है*.
-System: 🟡 hint *(…क्या हर -ई वाला शब्द स्त्रीलिंग होता है? "मेरा पानी" या "मेरी पानी"?)* → she retries and chooses **ठंडी** again → 🔴 explanation *("पानी" के अंत में -ई है, पर यह पुल्लिंग है! इसलिए "ठंडा"…)* + model answer → **re-teach card** *"हर -ई वाला शब्द स्त्रीलिंग नहीं होता!"* → **inserted targeted task** *दही ___ है।* (खट्टा/खट्टी). The progress chart shows 🟡 for task 1, and her next session opens with an M1 warm-up item.
+![(a) Correct answer — praise with the reason, 2 stars](screenshots/a1.png)
 
-> [Screenshot b1 – M1 hint]  [Screenshot b2 – M1 explanation]  [Screenshot b3 – re-teach card]  [Screenshot b4 – दही remedial task]
+Typed correction: she writes **बस आयी।** (an accepted spelling variant of आई) → ✅ *"बस" स्त्रीलिंग है, इसलिए यही सही है।*
 
-**Design-challenge demonstration (speaking task):** *हम रोज स्कूल जाते हैं* → ✅ accepted + school-form tip; *मैं स्कूल जाता हूँ* (for a learner who chose "मैं जाती हूँ") → 🟡 agreement hint.
+![(a) Typed correction accepted](screenshots/fix_correct.png)
 
-> [Screenshot c1 – dialect accepted + bridge]  [Screenshot c2 – real error corrected]
+### (b) Learner showing misconception M2 ("objects are masculine")
+For *मेरी किताब बहुत ___ है* she chooses **अच्छा**.
+1. **Hint, no answer given** — 🟡 *क्या चीज़ें हमेशा पुल्लिंग होती हैं? बोलकर देखो: "मेरा किताब" या "मेरी किताब"?*
+
+![(b1) M2 hint](screenshots/b1.png)
+
+2. She retries and chooses **अच्छा** again → 🔴 **explanation + model answer**: *चीज़ों का भी लिंग होता है! "किताब" स्त्रीलिंग है (मेरी किताब)। इसलिए "अच्छी" आएगा, "अच्छा" नहीं।* — सही उत्तर: मेरी किताब बहुत अच्छी है। (no stars, *💪 कोशिश के लिए शाबाश*)
+
+![(b2) M2 explanation and model answer](screenshots/b2.png)
+
+3. The system **diagnoses M2 and inserts a re-teach card** (*चीज़ों का भी लिंग होता है!* with five feminine objects and the "मेरा/मेरी" trick), followed by a targeted extra item (*सड़क बहुत ___ है*). Note the exercise count grows from 7 to 8.
+
+![(b3) M2 re-teach card inserted](screenshots/c1.png)
+
+**The same learner also showed M1** in the sorting task (placed **दही** under स्त्रीलिंग because it ends in -ई) → M1 hint → M1 re-teach card *"हर -ई वाला शब्द स्त्रीलिंग नहीं होता!"*:
+
+![(b4) M1 diagnosed in sorting — hint](screenshots/sort_m1_hint.png)
+![(b5) M1 re-teach card](screenshots/m1_reteach.png)
+
+### Outcome of the two paths
+Path (a) gets praise and moves on; path (b) gets a hint → explanation → re-teach card → extra targeted items, and her summary shows 🟡 on those tasks, 🔁 inserted review items, and lower first-try bars for O1/O2 (3/4, 4/7) — data a teacher can act on. Her next session will open with M1/M2 warm-up items.
+
+![Summary — progress chart for path (b): 12/12 exercises, ✅/🟡 per step, O1–O3 bars](screenshots/summary.png)
+
+### Design-challenge demonstration (speaking task)
+*हम रोज स्कूल जाते हैं* → ✅ accepted as dialect + blue "school Hindi" tip (not an error); *मैं स्कूल जाता हूँ* for a learner who chose "मैं जाती हूँ" → 🟡 agreement hint. The speaking screen shows the learner's chosen self-reference form ("तुमने चुना: मैं जाता हूँ — बदलना है?") so it can be corrected on the spot:
+
+![Speaking task — speech input with typed fallback and self-reference choice](screenshots/speak.png)
 
 ---
 
