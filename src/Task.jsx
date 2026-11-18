@@ -8,6 +8,10 @@ import { Btn, Speaker } from './ui'
 // without giving the answer. Level 2 (second wrong try) = full explanation + model answer.
 export function feedbackFor(r, level, gender) {
   const s = r.subject, G = G_NAME[r.gender] ?? ''
+  if (r.why) return r.why.correct
+    ? { tone: 'good', hi: 'शाबाश! ✓ तुमने सही कारण बताया — बस स्त्रीलिंग है, इसलिए "आई"।', en: 'Correct reasoning: बस is feminine, so the verb ends in -ई.' }
+    : level === 1 ? { tone: 'hint', hi: r.why.hint, en: 'Hint: think about which word decides the ending.' }
+      : { tone: 'bad', hi: r.why.explain, en: 'The noun being talked about (बस) decides the ending.' }
   if (r.type === 'ok' && !r.gender) return { tone: 'good', hi: 'शाबाश! ✓ सब शब्द सही डिब्बे में हैं।', en: 'All correct!' }
   if (r.type === 'spelling') return { tone: 'hint', hi: 'लगभग सही! बस वर्तनी (spelling) ठीक करो।', en: 'Almost there — just fix the spelling.' }
   if (r.type === 'ok') return { tone: 'good', hi: `शाबाश! ✓ "${s}" ${G} है, इसलिए यही सही है।`, en: `Correct — "${s}" is ${r.gender === 'm' ? 'masculine' : 'feminine'}.` }
@@ -90,6 +94,7 @@ export default function Task({ id, task, profile, onDone }) {
         <p className="text-sm text-slate-500">{task.en}</p>
       </div>
       {task.kind === 'mcq' && <Mcq task={task} profile={profile} locked={!!result} onSubmit={submit} />}
+      {task.kind === 'why' && <Why task={task} locked={!!result} onSubmit={submit} />}
       {task.kind === 'sort' && <Sort task={task} locked={!!result} onSubmit={submit} />}
       {task.kind === 'fix' && <Fix task={task} profile={profile} locked={!!result} onSubmit={submit} />}
       {task.kind === 'tiles' && <Tiles task={task} profile={profile} locked={!!result} onSubmit={submit} />}
@@ -100,6 +105,7 @@ export default function Task({ id, task, profile, onDone }) {
 }
 
 function modelAnswer(task, gender) {
+  if (task.kind === 'why') return task.options.find(o => o.correct).text
   if (task.kind === 'mcq') return task.sentence.replace('___', task.answer)
   if (task.kind === 'sort') return task.words.map(([w]) => `${w} (${G_NAME[nounInfo(w).g]})`).join(', ')
   if (task.kind === 'speak') return gender === 'f' ? 'मैं रोज़ स्कूल जाती हूँ।' : 'मैं रोज़ स्कूल जाता हूँ।'
@@ -125,6 +131,21 @@ function Mcq({ task, profile, locked, onSubmit }) {
           }} className="py-5 text-2xl font-bold rounded-2xl bg-white border-2 border-indigo-200 active:scale-95 disabled:opacity-60 shadow-sm">{o}</button>
         ))}
       </div>
+    </div>
+  )
+}
+
+// ---------- Format 6: explain why (reasoning choice) ----------
+function Why({ task, locked, onSubmit }) {
+  return (
+    <div className="space-y-3">
+      <div className="bg-white rounded-2xl p-4 text-xl font-semibold flex items-center gap-2">
+        <span className="flex-1">{task.question}</span><Speaker text={task.question} />
+      </div>
+      {task.options.map(o => (
+        <button key={o.text} disabled={locked} onClick={() => onSubmit({ type: o.correct ? 'ok' : o.type, why: o, notes: [] }, !!o.correct, o.text)}
+          className="w-full text-left p-4 text-lg rounded-2xl bg-white border-2 border-indigo-200 active:scale-[.98] disabled:opacity-60 shadow-sm">{o.text}</button>
+      ))}
     </div>
   )
 }

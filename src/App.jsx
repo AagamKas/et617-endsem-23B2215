@@ -5,7 +5,7 @@ import Task from './Task'
 import { Btn, Speaker } from './ui'
 
 const REMEDIAL = { M1: 'rM1', M2: 'rM2', agreement: 'ragree' }
-const STEP_LABEL = { learn: '📖 समझो', t1: '💧 चुनो', t2: '📕 चुनो', t3: '🗂️ छाँटो', t4: '✏️ ठीक करो', t5: '🧩 बनाओ', t6: '🎤 बोलो', done: '⭐ पूरा' }
+const STEP_LABEL = { learn: '📖 समझो', t1: '💧 चुनो', t2: '📕 चुनो', t3: '🗂️ छाँटो', t4: '✏️ ठीक करो', why: '🤔 क्यों?', t5: '🧩 बनाओ', t6: '🎤 बोलो', done: '⭐ पूरा' }
 const gWord = (g, m, f) => (g === 'f' ? f : m)
 
 export default function App() {

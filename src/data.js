@@ -22,6 +22,16 @@ export const TASKS = {
     words: [['पानी', '💧'], ['किताब', '📕'], ['घोड़ा', '🐎'], ['बस', '🚌'], ['दही', '🥣'], ['नदी', '🏞️']],
   },
   t4: { kind: 'fix', pic: '🚌', title: 'वाक्य ठीक करो', en: 'Fix the sentence (type it correctly)', wrongSentence: 'बस आया।', model: 'बस आई।', mustHave: 'बस' },
+  // Outcome 3 (explain why): each wrong option is a misconception the learner may actually hold.
+  why: {
+    kind: 'why', pic: '🤔', title: 'क्यों?', en: 'Why? Explain the change',
+    question: '"बस आया" को हमने "बस आई" क्यों किया?',
+    options: [
+      { text: 'क्योंकि "बस" स्त्रीलिंग है — हम कहते हैं "मेरी बस"', correct: true },
+      { text: 'क्योंकि वाक्य लिखने वाली लड़की है', type: 'agreement', hint: 'क्या शब्द का अंत लिखने वाले से बदलता है, या जिसकी बात हो रही है उससे? यहाँ बात किसकी हो रही है?', explain: 'शब्द का अंत लिखने वाले से नहीं, जिसकी बात हो रही है उससे बदलता है — यहाँ "बस" की बात है, और बस स्त्रीलिंग है।' },
+      { text: 'क्योंकि "आई" लिखना ज़्यादा सुंदर लगता है', type: 'guess', hint: 'यह नियम से होता है, सुंदरता से नहीं। "मेरा बस" या "मेरी बस" — कौन सही लगता है?', explain: '"मेरी बस" — बस स्त्रीलिंग है, इसलिए "आई"। यह नियम है, पसंद नहीं।' },
+    ],
+  },
   t5: { kind: 'tiles', pic: '👧⚽', title: 'वाक्य बनाओ', en: 'Build the sentence from the tiles', tiles: ['रहा', 'लड़की', 'है', 'खेल', 'रही'], model: 'लड़की खेल रही है', accept: ['लड़की खेल रही है'] },
   t6: { kind: 'speak', pic: '🏫🚶', title: 'बोलकर बताओ', en: 'Say it aloud: how do you go to school every day?' },
 
@@ -31,7 +41,7 @@ export const TASKS = {
   ragree: { kind: 'mcq', remedial: 'agreement', pic: '👦⚽', title: 'एक और कोशिश', en: 'One more: match the noun', sentence: 'लड़का खेल ___ है।', options: ['रहा', 'रही'], answer: 'रहा' },
 }
 
-export const BASE_PLAN = ['learn', 't1', 't2', 't3', 't4', 't5', 't6', 'done']
+export const BASE_PLAN = ['learn', 't1', 't2', 't3', 't4', 'why', 't5', 't6', 'done']
 
 // Re-teach cards shown before a remedial item
 export const RETEACH = {
