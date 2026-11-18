@@ -72,6 +72,7 @@ Three picture cards, read aloud on tap, with the agreeing ending highlighted (**
 | 5 | Reasoning choice ("क्यों?") | *"बस आया" को हमने "बस आई" क्यों किया?* (a) क्योंकि "बस" स्त्रीलिंग है — "मेरी बस" (b) क्योंकि वाक्य लिखने वाली लड़की है (c) क्योंकि "आई" लिखना ज़्यादा सुंदर लगता है | **(a)** | O3 |
 | 6 | Word tiles | 👧⚽ build from: रहा · लड़की · है · खेल · रही | **लड़की खेल रही है** | O2 |
 | 7 | Spoken answer (speech in, speech out) | 🏫 *तुम रोज़ स्कूल कैसे जाती हो?* | **मैं रोज़ स्कूल जाती हूँ।** (accepted dialect: *हम रोज स्कूल जाते हैं*) | O2, design challenge |
+| ➕ | "One more of this type" (learner's choice, **max 3 per session** to stay within 10 min) | *हाथी बहुत ___ है* (मोटा/मोटी) · *मेरी कलम ___ है* (नया/नई) · sort घी, कलम, हाथी, सड़क, आदमी, चाय · fix *सड़क टूटा है* · why *पानी ठंडी → ठंडा?* · tiles *दीदी खाना बना रही है* · speak *तुम्हारी दीदी शाम को क्या करती है?* | मोटा · नई · पुल्लिंग: घी, हाथी, आदमी / स्त्रीलिंग: कलम, सड़क, चाय · सड़क टूटी है · "पानी पुल्लिंग है" · दीदी खाना बना रही है · दीदी खाना बनाती है | learner agency, extra practice |
 | + | Remedial (only if diagnosed) | M1: *दही ___ है।* खट्टा/खट्टी · M2: *सड़क बहुत ___ है।* लंबा/लंबी · other: *लड़का खेल ___ है।* रहा/रही | खट्टा · लंबी · रहा | adaptivity |
 
 ### Feedback (actual text shown and spoken by the app)
@@ -117,7 +118,8 @@ Stars: ⭐⭐ right first time · ⭐ right after the hint · none after the mod
 **Learner inputs:** tap choice, drag-and-drop, typed Hindi (on-screen keyboard, Roman→Devanagari), word tiles, speech. **System outputs:** two-level feedback, spoken feedback, re-teach cards, inserted remedial tasks, progress chart, stars.
 
 ### C4 (10-minute sessions) — visible implementation
-- ⏱ **"x:xx / 10:00" timer** and progress bar on every session screen; one sequence (explain + 7 tasks + recap) takes ≈ 8–9.5 minutes.
+- ⏱ **"x:xx / 10:00" timer** and an **"✅ x/y अभ्यास" exercises-completed counter** with progress bar on every session screen;
+- Extra "one more of this type" practice is **capped at 3 per session** so the sequence still fits in 10 minutes; one sequence (explain + 7 tasks + recap) takes ≈ 8–9.5 minutes.
 - **Auto-save** every second and after each step (localStorage, per child).
 - **⏸ रुको** (pause) and **▶ जहाँ छोड़ा था, वहीं से** (resume at the same step), even after another child used the tablet.
 - **⏹ खत्म** (end session, with confirmation) → summary with unfinished steps marked ⬜.
@@ -180,7 +182,7 @@ No large language model is used (no API key was available, and deterministic che
 
 **Feedback and scaffolding.** Feedback is two-level: a **hint that makes Rani test her own belief** (*"क्या हर -ई वाला शब्द स्त्रीलिंग होता है?"*), then an **explanation with the model answer**. This addresses the rubric's highest level for misconceptions — the learner identifies her alternate conception herself before it is resolved. The **"मेरा या मेरी?" trick** turns knowledge she already has (gender of people via मेरा/मेरी) into a tool for objects. Diagnosed misconceptions trigger a **re-teach card with five contrasting examples** and an extra targeted item.
 
-**Adaptivity (profile + performance + interaction).** Performance: hint → explanation → re-teach + remedial item. Profile: the self-reference form (जाता/जाती) sets expected मैं-forms; a returning learner's next session starts with items for her past misconceptions. Interaction: 🔊 taps are logged; after 3 taps every new prompt is read aloud automatically.
+**Adaptivity (profile + performance + interaction).** Performance: hint → explanation → re-teach + remedial item. Profile: the self-reference form (जाता/जाती) sets expected मैं-forms; a returning learner's next session starts with items for her past misconceptions. Interaction: 🔊 taps are logged; after 3 taps every new prompt is read aloud automatically. **Learner agency:** after any task, Rani can choose *"➕ इसी तरह का एक और"* to practise one more question of the same type (a different question; max 3 per session).
 
 **Answer to the P2 design challenge — error vs acceptable variation.** The checker judges *only gender agreement between noun and adjective/verb*, and gives three visibly different responses:
 1. **Language error → corrected:** *पानी ठंडी है*, *बस आया*, *मैं स्कूल जाता हूँ* (for a girl) → hint, explanation, retry.
@@ -217,7 +219,7 @@ Data would be exported per child from the tablet (or synced to a teacher view in
 4. Scaffolded Vite + React + Tailwind; first deploy live 18:29.
 5. AI wrote the rule-based agreement checker and the learning flow; I reviewed the persona in detail and asked for a card-to-persona mapping to check nothing was missed.
 6. I approved refinements: a "why?" task for O3, adaptivity from profile and interaction, a simpler rule text, and "accept and bridge" for dialect.
-7. After testing, I asked for: dark mode, end-session, an on-screen Hindi keyboard / conversion, a progress chart, drag-and-drop with an example, a less personal gender question, a clear star rule, profile deletion, Hindi names, and a full reset.
+7. After testing, I asked for: dark mode, end-session, an on-screen Hindi keyboard / conversion, a progress chart, drag-and-drop with an example, a less personal gender question, a clear star rule, profile deletion, Hindi names, a full reset, visible delete options, an exercises-completed counter, and a "one more of this type" option capped at 3 to respect the 10-minute limit.
 8. Report drafted by AI from the actual code; checked and edited by me.
 
 **Reflection.**
