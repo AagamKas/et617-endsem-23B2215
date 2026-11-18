@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { AVATARS, BASE_PLAN, G_NAME, LEARN, RETEACH, RULE, RULE_EN, RULE_SMALL, TASKS } from './data'
+import { ALT, AVATARS, BASE_PLAN, G_NAME, LEARN, MAX_REDOS, RETEACH, RULE, RULE_EN, RULE_SMALL, TASKS, isExercise } from './data'
 import { SESSION_SECONDS, fmt, newProfile, useStore } from './store'
 import Task from './Task'
 import HindiInput from './HindiInput'
@@ -7,15 +7,15 @@ import { Btn, ConfirmBtn, GenderPick, Speaker } from './ui'
 
 const REMEDIAL = { M1: 'rM1', M2: 'rM2', agreement: 'ragree' }
 const AUTO_READ_AFTER = 3 // interaction adaptivity: after 3 taps on 🔊, read every new prompt aloud automatically
-const STEP_LABEL = { rM1: '🔁 याद', rM2: '🔁 याद', ragree: '🔁 याद', learn: '📖 समझो', t1: '💧 चुनो', t2: '📕 चुनो', t3: '🗂️ छाँटो', t4: '✏️ ठीक करो', why: '🤔 क्यों?', t5: '🧩 बनाओ', t6: '🎤 बोलो', done: '⭐ पूरा' }
+const STEP_LABEL = { rM1: '🔁 याद', rM2: '🔁 याद', ragree: '🔁 याद', t1b: '➕ चुनो', t2b: '➕ चुनो', t3b: '➕ छाँटो', t4b: '➕ ठीक करो', whyb: '➕ क्यों?', t5b: '➕ बनाओ', t6b: '➕ बोलो', learn: '📖 समझो', t1: '💧 चुनो', t2: '📕 चुनो', t3: '🗂️ छाँटो', t4: '✏️ ठीक करो', why: '🤔 क्यों?', t5: '🧩 बनाओ', t6: '🎤 बोलो', done: '⭐ पूरा' }
 const gWord = (g, m, f) => (g === 'f' ? f : m)
 const isOk = l => l.type === 'ok' || l.type === 'dialect'
 // Stars reward learning, not just being right: ⭐⭐ right first time, ⭐ right after the hint, none after the model answer.
 export const starsFor = log => (log[0] && isOk(log[0]) ? 2 : log[1] && isOk(log[1]) ? 1 : 0)
 const OUTCOMES = [
-  ['O1', 'लिंग पहचानना', 'Identify noun gender', ['t3', 'rM1', 'rM2']],
-  ['O2', 'सही शब्द चुनना/बनाना', 'Choose & produce agreeing forms', ['t1', 't2', 't4', 't5', 't6', 'ragree']],
-  ['O3', '"क्यों" समझाना', 'Explain why', ['why']],
+  ['O1', 'लिंग पहचानना', 'Identify noun gender', ['t3', 't3b', 'rM1', 'rM2']],
+  ['O2', 'सही शब्द चुनना/बनाना', 'Choose & produce agreeing forms', ['t1', 't2', 't4', 't5', 't6', 't1b', 't2b', 't4b', 't5b', 't6b', 'ragree']],
+  ['O3', '"क्यों" समझाना', 'Explain why', ['why', 'whyb']],
 ]
 
 // Progress chart: every step's status + a bar per learning outcome (current session).
@@ -31,7 +31,11 @@ function ProgressChart({ me }) {
   const STYLE = { good: ['bg-emerald-100', '✅'], helped: ['bg-amber-100', '🟡'], now: ['bg-indigo-100 ring-2 ring-indigo-400', '▶'], todo: ['bg-slate-100', '⬜'] }
   return (
     <div className="bg-white rounded-2xl p-4 shadow-sm space-y-3">
-      <h2 className="font-bold">मेरी प्रगति <span className="text-sm font-normal text-slate-500">(my progress)</span></h2>
+      <div className="flex justify-between items-baseline">
+        <h2 className="font-bold">मेरी प्रगति <span className="text-sm font-normal text-slate-500">(my progress)</span></h2>
+        <span className="font-semibold">✅ {me.plan.slice(0, me.pos).filter(isExercise).length}/{me.plan.filter(isExercise).length} अभ्यास पूरे</span>
+      </div>
+      <div className="h-3 bg-slate-100 rounded-full overflow-hidden"><div className="h-full bg-indigo-500 transition-all" style={{ width: `${(me.plan.slice(0, me.pos).filter(isExercise).length / Math.max(1, me.plan.filter(isExercise).length)) * 100}%` }} /></div>
       <ol className="grid grid-cols-4 gap-2 text-center text-xs">
         {me.plan.map((s, i) => [s, i]).filter(([s]) => STEP_LABEL[s]).map(([s, i]) => {
           const [cls, icon] = STYLE[statusOf(i)]
@@ -71,7 +75,7 @@ export default function App() {
     deleteMe={() => { setDb(d => ({ ...d, profiles: d.profiles.filter(p => p.id !== d.current), current: null })); setScreen('profiles') }}
     restart={() => {
     // Profile adaptivity: a returning learner's new session opens with items targeting misconceptions diagnosed last time.
-    update(p => ({ ...p, plan: [...p.diagnosed.filter(d => REMEDIAL[d]).map(d => REMEDIAL[d]), ...BASE_PLAN], pos: 0, elapsed: 0, ended: false, sessions: p.sessions + 1 }))
+    update(p => ({ ...p, plan: [...p.diagnosed.filter(d => REMEDIAL[d]).map(d => REMEDIAL[d]), ...BASE_PLAN], pos: 0, elapsed: 0, ended: false, redos: 0, sessions: p.sessions + 1 }))
     setScreen('session')
   }} />
   else body = <Session me={me} update={update} stop={() => setScreen('home')} nextLearner={() => { setDb(d => ({ ...d, current: null })); setScreen('newProfile') }} />
@@ -187,13 +191,10 @@ function Home({ me, start, switchUser, restart, resetMe, deleteMe }) {
         <Btn wide onClick={start} className="py-5 text-2xl">{resuming ? `▶ जहाँ छोड़ा था, वहीं से (${STEP_LABEL[step] ?? 'अभ्यास'})` : '▶ शुरू करो'}</Btn>
       )}
       <Btn kind="ghost" wide onClick={switchUser}>👥 टैबलेट किसी और को दो</Btn>
-      <details className="text-sm">
-        <summary className="cursor-pointer text-slate-500">⚙️ और विकल्प (more options)</summary>
-        <div className="space-y-2 pt-2">
-          <ConfirmBtn label="🔄 मेरी प्रगति शुरू से (reset my progress)" question={`${me.name} के सारे तारे और प्रगति मिट जाएँगे, खेल शुरू से होगा। पक्का?`} yes="हाँ, शुरू से" onYes={resetMe} />
-          <ConfirmBtn label="🗑️ मेरी प्रोफ़ाइल हटाओ (delete my profile)" question={`"${me.name}" की प्रोफ़ाइल हमेशा के लिए हट जाएगी। पक्का?`} yes="हाँ, हटाओ" onYes={deleteMe} />
-        </div>
-      </details>
+      <div className="space-y-2 pt-3 border-t border-amber-200">
+        <ConfirmBtn label="🔄 मेरी प्रगति शुरू से (reset my progress)" question={`${me.name} के सारे तारे और प्रगति मिट जाएँगे, खेल शुरू से होगा। पक्का?`} yes="हाँ, शुरू से" onYes={resetMe} />
+        <ConfirmBtn label="🗑️ मेरी प्रोफ़ाइल हटाओ (delete my profile)" question={`"${me.name}" की प्रोफ़ाइल हमेशा के लिए हट जाएगी। पक्का?`} yes="हाँ, हटाओ" onYes={deleteMe} />
+      </div>
     </div>
   )
 }
@@ -223,16 +224,22 @@ function Session({ me, update, stop, nextLearner }) {
   const next = () => update(p => ({ ...p, pos: Math.min(p.pos + 1, p.plan.length - 1) }))
 
   // Adaptivity: a diagnosed misconception inserts a re-teach card + an easier targeted item next.
-  function taskDone({ firstTry, diagnosed, log }) {
+  function taskDone({ redo, diagnosed, log }) {
     update(p => {
       const plan = [...p.plan]
       const rem = REMEDIAL[diagnosed]
       if (diagnosed && rem && !plan.includes(`reteach:${diagnosed}`)) plan.splice(p.pos + 1, 0, `reteach:${diagnosed}`, rem)
-      return { ...p, plan, pos: p.pos + 1, stars: p.stars + starsFor(log), log: [...p.log, ...log.map(l => ({ ...l, session: p.sessions, pos: p.pos }))], diagnosed: diagnosed && !p.diagnosed.includes(diagnosed) ? [...p.diagnosed, diagnosed] : p.diagnosed }
+      // Learner-chosen "one more of this type": insert the variant right after this task (max 3 per session)
+      let redos = p.redos || 0
+      const alt = ALT[p.plan[p.pos]]
+      if (redo && alt && !plan.includes(alt) && redos < MAX_REDOS) { plan.splice(p.pos + 1, 0, alt); redos++ }
+      return { ...p, plan, redos, pos: p.pos + 1, stars: p.stars + starsFor(log), log: [...p.log, ...log.map(l => ({ ...l, session: p.sessions, pos: p.pos }))], diagnosed: diagnosed && !p.diagnosed.includes(diagnosed) ? [...p.diagnosed, diagnosed] : p.diagnosed }
     })
   }
 
-  const progress = (me.pos / (me.plan.length - 1)) * 100
+  const totalEx = me.plan.filter(isExercise).length
+  const doneEx = me.plan.slice(0, me.pos).filter(isExercise).length
+  const progress = totalEx ? (doneEx / totalEx) * 100 : 0
   let content
   if (step === 'learn') content = <Learn gender={me.gender} onDone={next} />
   else if (step?.startsWith('reteach:')) content = <Reteach type={step.split(':')[1]} gender={me.gender} onDone={next} />
@@ -241,6 +248,7 @@ function Session({ me, update, stop, nextLearner }) {
     <>
       {warmUp && <p className="bg-sky-50 border-2 border-sky-300 rounded-xl p-3 text-sm">🔁 <b>पिछली बार की याद:</b> पिछली बार यह थोड़ा मुश्किल लगा था — चलो पहले इसे देखें। <span className="text-slate-500">(Warm-up based on last session's misconception.)</span></p>}
       <Task key={me.pos} id={step} task={TASKS[step]} profile={me} autoRead={autoRead} onDone={taskDone}
+        redosLeft={ALT[step] && !me.plan.includes(ALT[step]) ? MAX_REDOS - (me.redos || 0) : 0}
         setGender={g => update(p => ({ ...p, gender: g }))} />
     </>
   )
@@ -252,7 +260,7 @@ function Session({ me, update, stop, nextLearner }) {
           <div className="flex items-center gap-2 text-sm">
             <span className="text-2xl">{me.avatar}</span>
             <span className={`font-mono px-2 py-1 rounded-lg ${over ? 'bg-rose-100 text-rose-700' : 'bg-white'}`}>⏱ {fmt(me.elapsed)} / 10:00</span>
-            <span className="text-slate-500">कदम {me.pos + 1}/{me.plan.length - 1}</span>
+            <span className="font-semibold">✅ {doneEx}/{totalEx} अभ्यास</span>
             {autoRead && <span className="text-xs bg-amber-100 rounded-lg px-2 py-1" title="Auto-read is on because you often tap 🔊">🔊 अपने-आप</span>}
             <button onClick={stop} className="ml-auto px-3 py-2 rounded-xl bg-white border-2 border-slate-200 font-semibold" title="Pause — continue later from here">⏸ रुको</button>
             <button onClick={() => setEnding(true)} className="px-3 py-2 rounded-xl bg-white border-2 border-rose-200 text-rose-700 font-semibold" title="End today's session">⏹ खत्म</button>

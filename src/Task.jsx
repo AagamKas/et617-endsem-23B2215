@@ -32,7 +32,7 @@ export function feedbackFor(r, level, gender) {
   return { tone: 'hint', hi: 'हमें वाक्य में संज्ञा नहीं मिली। पूरा वाक्य बोलो या लिखो।', en: "We couldn't find the noun — try a full sentence." }
 }
 
-function Feedback({ fb, notes = [], bridge, model, stars, onRetry, onNext }) {
+function Feedback({ fb, notes = [], bridge, model, stars, onRetry, onNext, onRedo, redosLeft }) {
   const box = { good: 'bg-emerald-50 border-emerald-400', hint: 'bg-amber-50 border-amber-400', bad: 'bg-rose-50 border-rose-400' }[fb.tone]
   return (
     <div className={`border-2 rounded-2xl p-4 space-y-2 ${box}`} aria-live="polite">
@@ -52,9 +52,10 @@ function Feedback({ fb, notes = [], bridge, model, stars, onRetry, onNext }) {
       )}
       {model && <p className="font-semibold">सही उत्तर: <span className="text-emerald-700">{model}</span></p>}
       {stars != null && <p className="text-sm">{stars === 2 ? '⭐⭐ पहली बार में सही!' : stars === 1 ? '⭐ हिंट के बाद सही — बढ़िया!' : '💪 कोशिश के लिए शाबाश — अगली बार ज़रूर!'}</p>}
-      <div className="flex gap-2 pt-1">
+      <div className="flex flex-wrap gap-2 pt-1">
         {onRetry && <Btn onClick={onRetry} kind="ghost">🔁 फिर से करो</Btn>}
         {onNext && <Btn onClick={onNext}>आगे चलो →</Btn>}
+        {onRedo && <Btn onClick={onRedo} kind="ghost" title="Practise one more question of this type">➕ इसी तरह का एक और ({redosLeft} बचे)</Btn>}
       </div>
     </div>
   )
@@ -64,11 +65,11 @@ function promptText(task, gender) {
   if (task.kind === 'mcq') return task.sentence.replace('___', '…')
   if (task.kind === 'why') return task.question
   if (task.kind === 'fix') return `${task.title}। ${task.wrongSentence}`
-  if (task.kind === 'speak') return gender === 'f' ? 'तुम रोज़ स्कूल कैसे जाती हो?' : 'तुम रोज़ स्कूल कैसे जाते हो?'
+  if (task.kind === 'speak') return task.question ?? (gender === 'f' ? 'तुम रोज़ स्कूल कैसे जाती हो?' : 'तुम रोज़ स्कूल कैसे जाते हो?')
   return task.title
 }
 
-export default function Task({ id, task, profile, autoRead, onDone, setGender }) {
+export default function Task({ id, task, profile, autoRead, onDone, setGender, redosLeft }) {
   // Interaction adaptivity: learners who keep tapping 🔊 get every new prompt read aloud automatically.
   useEffect(() => { if (autoRead) speak(promptText(task, profile.gender)) }, []) // eslint-disable-line react-hooks/exhaustive-deps
   const [tries, setTries] = useState(0)
@@ -84,7 +85,7 @@ export default function Task({ id, task, profile, autoRead, onDone, setGender })
     const fb = feedbackFor(r, correct ? 0 : n, profile.gender)
     speak(fb.hi) // spoken feedback for early readers
   }
-  const finish = () => onDone({ firstTry: attempts[0]?.type === 'ok' || attempts[0]?.type === 'dialect', diagnosed: attempts.find(a => ['M1', 'M2', 'agreement'].includes(a.type))?.type, log: attempts })
+  const finish = (redo = false) => onDone({ redo, firstTry: attempts[0]?.type === 'ok' || attempts[0]?.type === 'dialect', diagnosed: attempts.find(a => ['M1', 'M2', 'agreement'].includes(a.type))?.type, log: attempts })
   const retry = () => setResult(null)
 
   const level = result && !result.correct ? Math.min(tries, 2) : 0
@@ -94,7 +95,8 @@ export default function Task({ id, task, profile, autoRead, onDone, setGender })
     <Feedback fb={fb} notes={result.r.notes} bridge={result.r.bridge} model={model}
       stars={result.correct ? (tries === 1 ? 2 : 1) : tries >= 2 ? 0 : null}
       onRetry={!result.correct && tries < 2 ? retry : null}
-      onNext={result.correct || tries >= 2 ? finish : null} />
+      onNext={result.correct || tries >= 2 ? () => finish(false) : null}
+      onRedo={(result.correct || tries >= 2) && redosLeft > 0 ? () => finish(true) : null} redosLeft={redosLeft} />
   )
 
   return (
@@ -111,7 +113,7 @@ export default function Task({ id, task, profile, autoRead, onDone, setGender })
       {task.kind === 'sort' && <Sort task={task} locked={!!result} onSubmit={submit} />}
       {task.kind === 'fix' && <Fix task={task} profile={profile} locked={!!result} onSubmit={submit} />}
       {task.kind === 'tiles' && <Tiles task={task} profile={profile} locked={!!result} onSubmit={submit} />}
-      {task.kind === 'speak' && <Speak profile={profile} locked={!!result} onSubmit={submit} setGender={setGender} />}
+      {task.kind === 'speak' && <Speak task={task} profile={profile} locked={!!result} onSubmit={submit} setGender={setGender} />}
       {fbEl}
     </div>
   )
@@ -121,7 +123,7 @@ function modelAnswer(task, gender) {
   if (task.kind === 'why') return task.options.find(o => o.correct).text
   if (task.kind === 'mcq') return task.sentence.replace('___', task.answer)
   if (task.kind === 'sort') return task.words.map(([w]) => `${w} (${G_NAME[nounInfo(w).g]})`).join(', ')
-  if (task.kind === 'speak') return gender === 'f' ? 'मैं रोज़ स्कूल जाती हूँ।' : 'मैं रोज़ स्कूल जाता हूँ।'
+  if (task.kind === 'speak') return task.example ?? (gender === 'f' ? 'मैं रोज़ स्कूल जाती हूँ।' : 'मैं रोज़ स्कूल जाता हूँ।')
   return task.model
 }
 
@@ -275,19 +277,19 @@ function Tiles({ task, profile, locked, onSubmit }) {
       <div className="flex flex-wrap gap-2">
         {task.tiles.map((t, i) => !built.includes(i) && <button key={i} disabled={locked} onClick={() => setBuilt(b => [...b, i])} className="px-4 py-2 text-xl rounded-xl bg-white border-2 border-slate-200 shadow-sm active:scale-95">{t}</button>)}
       </div>
-      {!locked && <Btn onClick={check} disabled={built.length < 4} wide>जाँचो ✓</Btn>}
+      {!locked && <Btn onClick={check} disabled={built.length < task.model.split(' ').length} wide>जाँचो ✓</Btn>}
       {remaining.length === 0 && null}
     </div>
   )
 }
 
 // ---------- Format 5: speak (speech recognition in, speech out) ----------
-function Speak({ profile, locked, onSubmit, setGender }) {
+function Speak({ task, profile, locked, onSubmit, setGender }) {
   const [heard, setHeard] = useState('')
   const [state, setState] = useState('idle')
   const [typed, setTyped] = useState('')
-  const q = profile.gender === 'f' ? 'तुम रोज़ स्कूल कैसे जाती हो?' : 'तुम रोज़ स्कूल कैसे जाते हो?'
-  const eg = profile.gender === 'f' ? 'मैं रोज़ स्कूल जाती हूँ।' : 'मैं रोज़ स्कूल जाता हूँ।'
+  const q = task.question ?? (profile.gender === 'f' ? 'तुम रोज़ स्कूल कैसे जाती हो?' : 'तुम रोज़ स्कूल कैसे जाते हो?')
+  const eg = task.example ?? (profile.gender === 'f' ? 'मैं रोज़ स्कूल जाती हूँ।' : 'मैं रोज़ स्कूल जाता हूँ।')
   const run = text => { const r = checkAgreement(text, profile.gender); onSubmit(r, !!r.ok, text) }
   function mic() {
     setState('listening'); setHeard('')
