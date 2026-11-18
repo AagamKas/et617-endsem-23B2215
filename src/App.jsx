@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { AVATARS, BASE_PLAN, G_NAME, LEARN, RETEACH, RULE, RULE_EN, RULE_SMALL, TASKS } from './data'
 import { SESSION_SECONDS, fmt, newProfile, useStore } from './store'
 import Task from './Task'
+import HindiInput from './HindiInput'
 import { Btn, GenderPick, Speaker } from './ui'
 
 const REMEDIAL = { M1: 'rM1', M2: 'rM2', agreement: 'ragree' }
@@ -86,6 +87,8 @@ export default function App() {
 // ---------- Screen 1: who is using the shared tablet? ----------
 function Profiles({ db, setDb, go }) {
   const [adding, setAdding] = useState(db.profiles.length === 0)
+  const [managing, setManaging] = useState(false)
+  const [confirmDel, setConfirmDel] = useState(null)
   const [name, setName] = useState('')
   const [avatar, setAvatar] = useState(AVATARS[0])
   const [gender, setGender] = useState(null)
@@ -108,19 +111,38 @@ function Profiles({ db, setDb, go }) {
           <h2 className="font-bold text-lg">यह टैबलेट सबका है — अपना नाम चुनो <Speaker text="यह टैबलेट सबका है। अपना नाम चुनो।" /></h2>
           <div className="grid grid-cols-2 gap-3">
             {db.profiles.map(p => (
-              <button key={p.id} onClick={() => pick(p.id)} className="bg-white rounded-2xl p-4 shadow-sm border-2 border-transparent active:border-indigo-400 text-left">
-                <div className="text-4xl">{p.avatar}</div>
-                <div className="font-bold text-xl">{p.name}</div>
-                <div className="text-xs text-slate-500">⭐ {p.stars} · कदम {Math.min(p.pos + 1, p.plan.length)}/{p.plan.length}</div>
-              </button>
+              <div key={p.id} className="relative">
+                <button onClick={() => pick(p.id)} className="w-full bg-white rounded-2xl p-4 shadow-sm border-2 border-transparent active:border-indigo-400 text-left">
+                  <div className="text-4xl">{p.avatar}</div>
+                  <div className="font-bold text-xl break-words">{p.name}</div>
+                  <div className="text-xs text-slate-500">⭐ {p.stars} · कदम {Math.min(p.pos + 1, p.plan.length)}/{p.plan.length}</div>
+                </button>
+                {managing && (confirmDel === p.id ? (
+                  <div className="absolute inset-0 bg-rose-50 rounded-2xl p-3 flex flex-col justify-center gap-2 border-2 border-rose-300">
+                    <p className="text-sm font-semibold">"{p.name}" को हटाएँ? सारी प्रगति मिट जाएगी।</p>
+                    <div className="flex gap-2">
+                      <button onClick={() => { setDb(d => ({ profiles: d.profiles.filter(x => x.id !== p.id), current: d.current === p.id ? null : d.current, dark: d.dark })); setConfirmDel(null) }} className="flex-1 py-2 rounded-xl bg-rose-600 text-white font-semibold">हाँ, हटाओ</button>
+                      <button onClick={() => setConfirmDel(null)} className="flex-1 py-2 rounded-xl bg-white border-2 border-slate-200">नहीं</button>
+                    </div>
+                  </div>
+                ) : (
+                  <button onClick={() => setConfirmDel(p.id)} aria-label={`Delete ${p.name}`} className="absolute top-2 right-2 w-10 h-10 rounded-full bg-rose-100 text-lg">🗑️</button>
+                ))}
+              </div>
             ))}
           </div>
+          <button onClick={() => { setManaging(m => !m); setConfirmDel(null) }} className="text-sm text-slate-500 underline">
+            {managing ? '✓ हो गया (done)' : '🗑️ प्रोफ़ाइल हटाओ (delete a profile)'}
+          </button>
         </section>
       )}
       {adding ? (
         <form onSubmit={create} className="bg-white rounded-2xl p-4 space-y-4 shadow-sm">
           <h2 className="font-bold text-lg">नया बच्चा जोड़ो <span className="text-sm font-normal text-slate-500">(new learner)</span></h2>
-          <input value={name} onChange={e => setName(e.target.value)} placeholder="तुम्हारा नाम" lang="hi" className="w-full text-xl p-3 rounded-xl border-2 border-slate-200" />
+          <div>
+            <p className="text-sm font-semibold mb-1">तुम्हारा नाम <span className="font-normal text-slate-500">(your name — Hindi or English)</span></p>
+            <HindiInput value={name} onChange={setName} placeholder="जैसे: रानी / raani" keyboardOpen={false} small />
+          </div>
           <div className="flex flex-wrap gap-2">
             {AVATARS.map(a => <button type="button" key={a} onClick={() => setAvatar(a)} className={`w-12 h-12 text-2xl rounded-xl ${avatar === a ? 'bg-indigo-100 ring-2 ring-indigo-500' : 'bg-slate-50'}`}>{a}</button>)}
           </div>

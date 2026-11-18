@@ -21,15 +21,39 @@ const ROMAN = {
   acchi: 'अच्छी', accha: 'अच्छा', cycle: 'साइकिल', saikil: 'साइकिल', auto: 'ऑटो', didi: 'दीदी', ke: 'के', saath: 'साथ', sath: 'साथ',
 }
 export const hasRoman = t => /[a-z]/i.test(t)
-export const toHindi = t => t.split(/(\s+)/).map(w => ROMAN[w.toLowerCase()] ?? w).join('')
 
-export default function HindiInput({ value, onChange, disabled, placeholder }) {
-  const [kb, setKb] = useState(true)
+// Simple phonetic Roman → Devanagari for words not in the dictionary (e.g. names: "raani" → "रानी", "sunita" → "सुनीता").
+// "aa / ee / oo" give long vowels; it's a best guess, and the learner can fix it with the keyboard.
+const CONS = [['chh', 'छ'], ['kh', 'ख'], ['gh', 'घ'], ['ch', 'च'], ['jh', 'झ'], ['th', 'थ'], ['dh', 'ध'], ['ph', 'फ'], ['bh', 'भ'], ['sh', 'श'],
+  ['k', 'क'], ['g', 'ग'], ['c', 'क'], ['j', 'ज'], ['t', 'त'], ['d', 'द'], ['n', 'न'], ['p', 'प'], ['b', 'ब'], ['m', 'म'], ['y', 'य'],
+  ['r', 'र'], ['l', 'ल'], ['v', 'व'], ['w', 'व'], ['s', 'स'], ['h', 'ह'], ['z', 'ज़'], ['f', 'फ़'], ['q', 'क'], ['x', 'क्स']]
+const VOW = [['aa', 'आ', 'ा'], ['ai', 'ऐ', 'ै'], ['au', 'औ', 'ौ'], ['ee', 'ई', 'ी'], ['ii', 'ई', 'ी'], ['oo', 'ऊ', 'ू'], ['uu', 'ऊ', 'ू'],
+  ['a', 'अ', ''], ['i', 'इ', 'ि'], ['u', 'उ', 'ु'], ['e', 'ए', 'े'], ['o', 'ओ', 'ो']]
+function translit(word) {
+  let s = word.toLowerCase(), out = '', prevCons = false
+  while (s) {
+    const v = VOW.find(([r]) => s.startsWith(r))
+    if (v) {
+      const atEnd = s.length === v[0].length
+      // word-final short i → ई, word-final a after a consonant → आ (common in Hindi names: sunita, rani)
+      const sign = atEnd && v[0] === 'i' ? 'ी' : atEnd && v[0] === 'a' && prevCons && out.length > 1 ? 'ा' : v[2]
+      out += prevCons ? sign : v[1]; s = s.slice(v[0].length); prevCons = false; continue
+    }
+    const c = CONS.find(([r]) => s.startsWith(r))
+    if (c) { if (prevCons) out += '्'; out += c[1]; s = s.slice(c[0].length); prevCons = true; continue }
+    out += s[0]; s = s.slice(1); prevCons = false
+  }
+  return out
+}
+export const toHindi = t => t.split(/(\s+)/).map(w => (/^[a-z]+$/i.test(w) ? ROMAN[w.toLowerCase()] ?? translit(w) : w)).join('')
+
+export default function HindiInput({ value, onChange, disabled, placeholder, keyboardOpen = true, small }) {
+  const [kb, setKb] = useState(keyboardOpen)
   const press = k => onChange(value + k)
   return (
     <div className="space-y-2">
       <input value={value} disabled={disabled} onChange={e => onChange(e.target.value)} lang="hi" placeholder={placeholder}
-        className="w-full text-2xl p-4 rounded-2xl border-2 border-indigo-200 focus:outline-none focus:border-indigo-500 bg-white" />
+        className={`w-full ${small ? 'text-xl p-3' : 'text-2xl p-4'} rounded-2xl border-2 border-indigo-200 focus:outline-none focus:border-indigo-500 bg-white`} />
       {hasRoman(value) && !disabled && (
         <button onClick={() => onChange(toHindi(value))} className="w-full py-2 rounded-xl bg-amber-100 border-2 border-amber-300 font-semibold">
           🔤 → अ हिंदी में बदलो: <span className="text-lg">{toHindi(value)}</span>
@@ -50,7 +74,7 @@ export default function HindiInput({ value, onChange, disabled, placeholder }) {
           </div>
         </div>
       )}
-      {!disabled && <p className="text-xs text-slate-500">Tip: Roman में भी लिख सकते हो, जैसे "bas aai" — फिर "हिंदी में बदलो" दबाओ।</p>}
+      {!disabled && <p className="text-xs text-slate-500">Tip: Roman में भी लिख सकते हो, जैसे "bas aai" या "raani" — फिर "हिंदी में बदलो" दबाओ। (लंबी आ/ई के लिए aa/ee)</p>}
     </div>
   )
 }
