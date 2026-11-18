@@ -176,27 +176,61 @@ function Sort({ task, locked, onSubmit }) {
     const type = n.g === 'm' && /ी$/.test(w) ? 'M1' : n.g === 'f' && !n.animate ? 'M2' : 'agreement'
     onSubmit({ type, subject: w, gender: n.g, wrong: G_NAME[placed[w]], fix: G_NAME[n.g], notes: wrong.length > 1 ? [`${wrong.length} शब्द गलत डिब्बे में हैं: ${wrong.join(', ')}`] : [] }, false, JSON.stringify(placed))
   }
-  const Box = ({ g, label, color }) => (
-    <button onClick={() => put(g)} disabled={locked} className={`min-h-36 rounded-2xl border-4 border-dashed p-3 text-left ${color} ${sel ? 'ring-4 ring-indigo-300' : ''}`}>
-      <div className="font-bold">{label}</div>
+  // Drag and drop with pointer events (works for touch and mouse); tapping still works as a fallback.
+  const [drag, setDrag] = useState(null) // { w, e, x, y, moved }
+  const [over, setOver] = useState(null)
+  useEffect(() => {
+    if (!drag) return
+    const boxAt = (x, y) => document.elementFromPoint(x, y)?.closest('[data-box]')?.dataset.box
+    const move = ev => { setDrag(d => d && { ...d, x: ev.clientX, y: ev.clientY, moved: true }); setOver(boxAt(ev.clientX, ev.clientY) ?? null) }
+    const up = ev => {
+      const g = boxAt(ev.clientX, ev.clientY)
+      if (g && drag) { setPlaced(p => ({ ...p, [drag.w]: g })); setSel(null) }
+      setDrag(null); setOver(null)
+    }
+    window.addEventListener('pointermove', move)
+    window.addEventListener('pointerup', up)
+    return () => { window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', up) }
+  }, [drag?.w]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const Box = ({ g, label, hint, color }) => (
+    <button data-box={g} onClick={() => put(g)} disabled={locked} className={`min-h-40 rounded-2xl border-4 border-dashed p-3 text-left transition ${color} ${sel || over === g ? 'ring-4 ring-indigo-300' : ''} ${over === g ? 'scale-[1.03]' : ''}`}>
+      <div className="font-bold text-lg">{label}</div>
+      <div className="text-sm text-slate-600">{hint}</div>
       <div className="flex flex-wrap gap-1 mt-2">
         {task.words.filter(([w]) => placed[w] === g).map(([w, e]) => (
-          <span key={w} onClick={ev => { if (locked) return; ev.stopPropagation(); setPlaced(p => { const q = { ...p }; delete q[w]; return q }) }} className="px-2 py-1 bg-white rounded-lg text-lg">{e} {w}</span>
+          <span key={w} onClick={ev => { if (locked) return; ev.stopPropagation(); setPlaced(p => { const q = { ...p }; delete q[w]; return q }) }} className="px-2 py-1 bg-white rounded-lg text-lg shadow-sm">{e} {w}</span>
         ))}
       </div>
     </button>
   )
   return (
     <div className="space-y-4">
-      <p className="text-sm">पहले शब्द पर टैप करो, फिर डिब्बे पर। <span className="text-slate-500">(Tap a word, then a box. Tap a placed word to take it back.)</span></p>
+      <div className="bg-white rounded-2xl p-3 border-2 border-amber-200">
+        <p className="text-sm font-bold text-amber-700 mb-2">👀 उदाहरण (example)</p>
+        <div className="flex items-center gap-2 text-lg flex-wrap">
+          <span className="px-3 py-1 bg-white border-2 rounded-xl shadow-sm">👦 लड़का</span><span>👉</span>
+          <span className="px-3 py-1 rounded-xl border-2 border-dashed border-sky-400 bg-sky-50">पुल्लिंग · "<b>मेरा</b> लड़का" ✓</span>
+        </div>
+        <div className="flex items-center gap-2 text-lg flex-wrap mt-2">
+          <span className="px-3 py-1 bg-white border-2 rounded-xl shadow-sm">👧 लड़की</span><span>👉</span>
+          <span className="px-3 py-1 rounded-xl border-2 border-dashed border-pink-400 bg-pink-50">स्त्रीलिंग · "<b>मेरी</b> लड़की" ✓</span>
+        </div>
+        <p className="text-sm mt-2">तरकीब: शब्द के आगे "मेरा" और "मेरी" लगाकर बोलो — जो सही लगे, उसी डिब्बे में डालो।</p>
+      </div>
+      <p className="text-sm">शब्द को <b>खींचकर</b> डिब्बे में डालो, या शब्द पर टैप करके फिर डिब्बे पर टैप करो। <span className="text-slate-500">(Drag a word into a box, or tap the word then the box. Tap a placed word to take it back.)</span></p>
       <div className="flex flex-wrap gap-2 min-h-12">
         {left.map(([w, e]) => (
-          <button key={w} disabled={locked} onClick={() => setSel(w)} className={`px-4 py-2 text-xl rounded-xl bg-white border-2 shadow-sm ${sel === w ? 'border-indigo-500 ring-2 ring-indigo-300' : 'border-slate-200'}`}>{e} {w}</button>
+          <button key={w} disabled={locked} onClick={() => setSel(w)}
+            onPointerDown={ev => { if (!locked) { ev.preventDefault(); setSel(w); setDrag({ w, e, x: ev.clientX, y: ev.clientY, moved: false }) } }}
+            style={{ touchAction: 'none' }}
+            className={`px-4 py-2 text-xl rounded-xl bg-white border-2 shadow-sm cursor-grab ${drag?.w === w && drag.moved ? 'opacity-30' : ''} ${sel === w ? 'border-indigo-500 ring-2 ring-indigo-300' : 'border-slate-200'}`}>{e} {w}</button>
         ))}
       </div>
+      {drag?.moved && <div className="fixed z-50 pointer-events-none px-4 py-2 text-xl rounded-xl bg-white border-2 border-indigo-500 shadow-xl" style={{ left: drag.x - 40, top: drag.y - 24 }}>{drag.e} {drag.w}</div>}
       <div className="grid grid-cols-2 gap-3">
-        <Box g="m" label="पुल्लिंग (मेरा)" color="border-sky-400 bg-sky-50" />
-        <Box g="f" label="स्त्रीलिंग (मेरी)" color="border-pink-400 bg-pink-50" />
+        <Box g="m" label="पुल्लिंग" hint='"मेरा ___"' color="border-sky-400 bg-sky-50" />
+        <Box g="f" label="स्त्रीलिंग" hint='"मेरी ___"' color="border-pink-400 bg-pink-50" />
       </div>
       {!locked && <Btn onClick={check} disabled={left.length > 0} wide>जाँचो ✓</Btn>}
     </div>

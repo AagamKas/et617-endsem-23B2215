@@ -60,6 +60,7 @@ export default function App() {
   const [screen, setScreen] = useState(db.current ? 'home' : 'profiles')
   const me = db.profiles.find(p => p.id === db.current)
   const update = fn => setDb(d => ({ ...d, profiles: d.profiles.map(p => (p.id === d.current ? fn(p) : p)) }))
+  useEffect(() => { document.documentElement.classList.toggle('dark', !!db.dark) }, [db.dark])
 
   let body
   if (screen === 'about') body = <About back={() => setScreen(me ? 'home' : 'profiles')} />
@@ -76,6 +77,7 @@ export default function App() {
       <main className="flex-1 w-full max-w-xl mx-auto px-4 py-4">{body}</main>
       <footer className="text-center text-xs text-slate-500 py-3 border-t border-amber-200">
         मेरा या मेरी? · ET 617 · <b>23B2215</b> · <button className="underline" onClick={() => setScreen('about')}>About</button>
+        {' · '}<button className="underline" onClick={() => setDb(d => ({ ...d, dark: !d.dark }))} aria-label="Toggle dark mode">{db.dark ? '☀️ लाइट' : '🌙 डार्क'}</button>
       </footer>
     </div>
   )
