@@ -62,9 +62,9 @@ export function flip(word) {
 // for this learner (हम रोज स्कूल जाते हैं → मैं रोज स्कूल जाती हूँ). Shown as a tip, never as an error.
 export function schoolForm(text, learnerGender) {
   const end = learnerGender === 'f' ? 'ी' : 'ा'
-  return text.trim().replace(/[।.!?]+$/, '').split(/\s+/).map(w => {
+  return text.trim().replace(/[।|.!?]+$/, '').split(/\s+/).map(w => {
     if (w === 'हम') return 'मैं'
-    if (w === 'हैं') return 'हूँ'
+    if (w === 'हैं' || w === 'है') return 'हूँ'
     if (w === 'रहे') return learnerGender === 'f' ? 'रही' : 'रहा'
     if (w === 'गए') return learnerGender === 'f' ? 'गई' : 'गया'
     if (/ते$/.test(w)) return w.replace(/े$/, end)

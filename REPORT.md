@@ -174,6 +174,13 @@ Path (a) gets praise and moves on; path (b) gets a hint → explanation → re-t
 
 ![Summary — progress chart for path (b): 12/12 exercises, ✅/🟡 per step, O1–O3 bars](screenshots/summary.png)
 
+### Design-challenge demonstration: dialect accepted, not marked wrong
+Typed answer on the speaking task: **हम बस से जाते है** (Bhojpuri-influenced हम for "I") → ✅ *बिल्कुल ठीक!*, ⭐⭐, the note *घर की बोली में "हम जाते हैं" बिल्कुल सही है। (Dialect variation, accepted — not an error.)* and a separate blue "school Hindi" tip that is explicitly *एक टिप, गलती नहीं*. Contrast with path (b), where a real agreement error gets a hint and an explanation.
+
+![Dialect form accepted with full stars, plus the school-Hindi tip](screenshots/dialect.png)
+
+*Note:* this screenshot exposed a bug in the tip: it showed "मैं बस से जाता है|।" because singular है and a typed "|" were not converted. Fixed before submission; the tip now reads **"मैं बस से जाता हूँ।"**.
+
 ### Design-challenge demonstration (speaking task)
 *हम रोज स्कूल जाते हैं* → ✅ accepted as dialect + blue "school Hindi" tip (not an error); *मैं स्कूल जाता हूँ* for a learner who chose "मैं जाती हूँ" → 🟡 agreement hint. The speaking screen shows the learner's chosen self-reference form ("तुमने चुना: मैं जाता हूँ — बदलना है?") so it can be corrected on the spot:
 
