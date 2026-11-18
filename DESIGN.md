@@ -21,15 +21,52 @@ Children in Hindi-medium schools in urban settlements often speak a regional var
 
 **Context of use:** NGO after-school centre in a Delhi resettlement colony, 4–6 PM. Each child gets about 10 minutes on a shared Android tablet (Chrome) while others wait, with a volunteer teacher nearby.
 
-## D2 – Learner persona
-- **Name / age:** Rani Kumari, 11, Class 6, government Hindi-medium school, Sangam Vihar (Delhi).
-- **Background:** first-generation learner; parents migrated from Bihar (father a construction worker, mother a domestic worker). No books at home.
-- **Language:** speaks Bhojpuri-influenced Hindi at home (says *"हम जा रहे हैं"* for "I am going"). Reads Devanagari slowly; prefers listening.
-- **Prior knowledge:** knows Devanagari letters and matras, can read short sentences, knows nouns for everyday things. Has not been explicitly taught that the verb and adjective agree with the noun.
-- **Misconception M1, ending-rule overgeneralisation:** believes every noun ending in **-ई is feminine** and every noun ending in **-आ is masculine**, so writes *"पानी ठंडी है"* (should be ठंडा, since पानी is masculine).
-- **Misconception M2, inanimate nouns default to masculine:** treats objects as masculine unless they "look" feminine, so writes *"किताब अच्छा है"* or *"बस आया"* (किताब and बस are feminine).
-- **Device / time:** shared Android tablet at the centre; about 10 minutes per turn, 3–4 days a week; patchy Wi-Fi.
-- **Motivation:** wants to read and write "proper" Hindi like her teacher; enjoys stars and praise; embarrassed by public correction, so private, kind feedback matters.
+## D2 – Learner persona: Rani Kumari
+**Who she is**
+- **Age / class:** 11, Class 6, government Hindi-medium school, Sangam Vihar, South Delhi.
+- **Family:** first-generation learner. Parents migrated from Siwan, Bihar, 8 years ago: father a daily-wage construction worker, mother a domestic worker; both read only a little. A younger brother (7). No storybooks or newspapers at home.
+- **Where she learns:** NGO after-school centre in her lane, 4–6 PM. About 25 children share 5 Android tablets; a volunteer **"didi"** runs 10-minute turns while the others do worksheets.
+
+**Language**
+- **Home:** Bhojpuri-influenced Hindi. Says *"हम जा रहे हैं"* for "I am going". In this variety girls also use the -ते form with हम (*"हम जाते हैं"*), so this is a dialect feature, **not** a gender error. In speech she drops the nukta (*जरूर*, *रोज*).
+- **School:** standard Hindi medium; teachers mark written gender errors in red without explaining them.
+- **Why gender agreement is hard for her:** Bhojpuri verbs carry much less gender marking than Hindi verbs, so at home she rarely hears a verb change because of the noun. She learned "लड़का → -आ, लड़की → -ई" through people; for everything else she guesses.
+- **Reading:** decodes Devanagari slowly, syllable by syllable; understands far better when she hears the text.
+
+**Prior knowledge (prerequisites)**
+- ✅ Knows all letters and matras (ा, ी, ि, े); reads and writes short sentences slowly.
+- ✅ Knows everyday nouns (पानी, किताब, बस, रोटी, दीदी) and uses मेरा/मेरी correctly for *people*.
+- ✅ Has heard the words पुल्लिंग / स्त्रीलिंग at school but cannot explain them.
+- ❌ Never taught that adjectives *and* verbs agree with the noun, or that objects have grammatical gender.
+- ❌ Confuses short इ and long ई matras when writing (*आइ* for *आई*).
+
+**Two likely misconceptions**
+| | Misconception | Typical error | Why she holds it |
+|---|---|---|---|
+| **M1** | Every **-ई** word is feminine and every **-आ** word is masculine | *पानी ठंडी है*, *दही खट्टी है* | Overgeneralises the लड़का/लड़की pattern to word endings |
+| **M2** | **Objects** are masculine unless obviously female | *किताब अच्छा है*, *बस आया* | Learned gender only through people; defaults to masculine for things |
+
+**Device and time**
+- Shared 8-inch Android tablet (Chrome) at the centre; patchy Wi-Fi.
+- Noisy room, **no headphones**: audio must be optional (tap-to-play) and speech recognition may fail, so a tap/typed fallback is always needed.
+- About **10 minutes per turn, 3–4 days a week**. She may be stopped mid-way when the didi calls the next child, so she must **resume exactly where she stopped**, even if another child used the tablet in between.
+
+**Motivation and feelings**
+- Wants to write "proper Hindi like didi" and stop getting red marks.
+- Loves stars and praise; **embarrassed by public correction**, so feedback must be private and kind, hint first so she can catch her own mistake.
+- Prefers speaking to writing; confident when talking.
+
+**Context of the content:** all examples use objects from Rani's day: the school bus, roti, chai, the water tank (पानी), दही, her दीदी and बहन.
+
+**What this means for the design**
+| Persona fact | Design response |
+|---|---|
+| Reads slowly, understands by ear | 🔊 on every prompt and feedback; short sentences; pictures |
+| Noisy room, shared device | Optional audio; typed/tap fallback for speech; per-child profiles |
+| 10-minute turns that get interrupted | Timer, auto-save each step, "⏸ अभी रुको", resume at the same step |
+| Embarrassed by correction | Hint first (self-correction), full explanation second, no harsh "wrong" |
+| Dialect at home | "हम" + -ते and nukta-less speech **accepted**; only gender errors corrected |
+| Knows मेरा/मेरी for people | "मेरा या मेरी?" trick to test any noun's gender (the app's name) |
 
 ## D3 – Content plan (one complete learning activity, ≤10 min)
 1. **Warm-up (1 min):** pick or create your profile on the shared tablet. If you're a returning learner, "Continue where you left off".
