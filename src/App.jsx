@@ -3,7 +3,7 @@ import { AVATARS, BASE_PLAN, G_NAME, LEARN, RETEACH, RULE, RULE_EN, RULE_SMALL, 
 import { SESSION_SECONDS, fmt, newProfile, useStore } from './store'
 import Task from './Task'
 import HindiInput from './HindiInput'
-import { Btn, GenderPick, Speaker } from './ui'
+import { Btn, ConfirmBtn, GenderPick, Speaker } from './ui'
 
 const REMEDIAL = { M1: 'rM1', M2: 'rM2', agreement: 'ragree' }
 const AUTO_READ_AFTER = 3 // interaction adaptivity: after 3 taps on 🔊, read every new prompt aloud automatically
@@ -65,13 +65,16 @@ export default function App() {
 
   let body
   if (screen === 'about') body = <About back={() => setScreen(me ? 'home' : 'profiles')} />
-  else if (!me || screen === 'profiles') body = <Profiles db={db} setDb={setDb} go={() => setScreen('home')} />
-  else if (screen === 'home') body = <Home me={me} start={() => setScreen('session')} switchUser={() => setScreen('profiles')} restart={() => {
+  else if (!me || screen === 'profiles' || screen === 'newProfile') body = <Profiles key={screen} db={db} setDb={setDb} startAdding={screen === 'newProfile'} go={() => setScreen('home')} />
+  else if (screen === 'home') body = <Home me={me} start={() => setScreen('session')} switchUser={() => setScreen('profiles')}
+    resetMe={() => update(p => ({ ...newProfile(p.name, p.avatar, p.gender), id: p.id }))}
+    deleteMe={() => { setDb(d => ({ ...d, profiles: d.profiles.filter(p => p.id !== d.current), current: null })); setScreen('profiles') }}
+    restart={() => {
     // Profile adaptivity: a returning learner's new session opens with items targeting misconceptions diagnosed last time.
     update(p => ({ ...p, plan: [...p.diagnosed.filter(d => REMEDIAL[d]).map(d => REMEDIAL[d]), ...BASE_PLAN], pos: 0, elapsed: 0, ended: false, sessions: p.sessions + 1 }))
     setScreen('session')
   }} />
-  else body = <Session me={me} update={update} stop={() => setScreen('home')} />
+  else body = <Session me={me} update={update} stop={() => setScreen('home')} nextLearner={() => { setDb(d => ({ ...d, current: null })); setScreen('newProfile') }} />
 
   return (
     <div className="min-h-dvh flex flex-col">
@@ -85,8 +88,8 @@ export default function App() {
 }
 
 // ---------- Screen 1: who is using the shared tablet? ----------
-function Profiles({ db, setDb, go }) {
-  const [adding, setAdding] = useState(db.profiles.length === 0)
+function Profiles({ db, setDb, go, startAdding }) {
+  const [adding, setAdding] = useState(startAdding || db.profiles.length === 0)
   const [managing, setManaging] = useState(false)
   const [confirmDel, setConfirmDel] = useState(null)
   const [name, setName] = useState('')
@@ -95,6 +98,7 @@ function Profiles({ db, setDb, go }) {
   const pick = id => { setDb(d => ({ ...d, current: id })); go() }
   function create(e) {
     e.preventDefault()
+    if (!name.trim() || !gender) return
     const p = newProfile(name.trim(), avatar, gender)
     setDb(d => ({ profiles: [...d.profiles, p], current: p.id }))
     go()
@@ -152,12 +156,19 @@ function Profiles({ db, setDb, go }) {
       ) : (
         <Btn kind="ghost" wide onClick={() => setAdding(true)}>➕ नया बच्चा</Btn>
       )}
+      {db.profiles.length > 0 && (
+        <div className="pt-4 border-t border-amber-200 space-y-2">
+          <p className="text-xs text-slate-500">दीदी के लिए (for the teacher / volunteer)</p>
+          <ConfirmBtn label="🧹 सब कुछ मिटाओ — ऐप नए सिरे से शुरू करो (reset app)" question={`सभी ${db.profiles.length} प्रोफ़ाइल और उनकी प्रगति मिट जाएगी। पक्का?`} yes="हाँ, सब मिटाओ"
+            onYes={() => { setDb(d => ({ profiles: [], current: null, dark: d.dark })); setAdding(true) }} />
+        </div>
+      )}
     </div>
   )
 }
 
 // ---------- Screen 2: welcome / resume ----------
-function Home({ me, start, switchUser, restart }) {
+function Home({ me, start, switchUser, restart, resetMe, deleteMe }) {
   const step = me.plan[me.pos]
   const finished = step === 'done'
   const resuming = me.pos > 0 && !finished
@@ -176,12 +187,19 @@ function Home({ me, start, switchUser, restart }) {
         <Btn wide onClick={start} className="py-5 text-2xl">{resuming ? `▶ जहाँ छोड़ा था, वहीं से (${STEP_LABEL[step] ?? 'अभ्यास'})` : '▶ शुरू करो'}</Btn>
       )}
       <Btn kind="ghost" wide onClick={switchUser}>👥 टैबलेट किसी और को दो</Btn>
+      <details className="text-sm">
+        <summary className="cursor-pointer text-slate-500">⚙️ और विकल्प (more options)</summary>
+        <div className="space-y-2 pt-2">
+          <ConfirmBtn label="🔄 मेरी प्रगति शुरू से (reset my progress)" question={`${me.name} के सारे तारे और प्रगति मिट जाएँगे, खेल शुरू से होगा। पक्का?`} yes="हाँ, शुरू से" onYes={resetMe} />
+          <ConfirmBtn label="🗑️ मेरी प्रोफ़ाइल हटाओ (delete my profile)" question={`"${me.name}" की प्रोफ़ाइल हमेशा के लिए हट जाएगी। पक्का?`} yes="हाँ, हटाओ" onYes={deleteMe} />
+        </div>
+      </details>
     </div>
   )
 }
 
 // ---------- Screen 3+: the 10-minute session ----------
-function Session({ me, update, stop }) {
+function Session({ me, update, stop, nextLearner }) {
   const [ending, setEnding] = useState(false)
   const step = me.plan[me.pos]
   const over = me.elapsed >= SESSION_SECONDS
@@ -218,7 +236,7 @@ function Session({ me, update, stop }) {
   let content
   if (step === 'learn') content = <Learn gender={me.gender} onDone={next} />
   else if (step?.startsWith('reteach:')) content = <Reteach type={step.split(':')[1]} gender={me.gender} onDone={next} />
-  else if (step === 'done') content = <Done me={me} home={stop} />
+  else if (step === 'done') content = <Done me={me} home={stop} nextLearner={nextLearner} />
   else content = (
     <>
       {warmUp && <p className="bg-sky-50 border-2 border-sky-300 rounded-xl p-3 text-sm">🔁 <b>पिछली बार की याद:</b> पिछली बार यह थोड़ा मुश्किल लगा था — चलो पहले इसे देखें। <span className="text-slate-500">(Warm-up based on last session's misconception.)</span></p>}
@@ -307,7 +325,7 @@ function Reteach({ type, onDone }) {
   )
 }
 
-function Done({ me, home }) {
+function Done({ me, home, nextLearner }) {
   const log = me.log.filter(l => l.session === me.sessions)
   const firstTry = log.filter(l => l.attempt === 1 && isOk(l)).length
   const tasks = log.filter(l => l.attempt === 1).length
@@ -324,7 +342,8 @@ function Done({ me, home }) {
         {me.diagnosed.includes('M2') && <p>📕 किताब, बस जैसी चीज़ें स्त्रीलिंग हैं।</p>}
         <p className="text-sm text-slate-500">तरकीब: "मेरा" या "मेरी" लगाकर बोलो!</p>
       </div>
-      <Btn wide onClick={home}>🏠 वापस जाओ</Btn>
+      <Btn wide onClick={nextLearner}>👥 खत्म — अगला बच्चा (finish, next learner)</Btn>
+      <Btn kind="ghost" wide onClick={home}>🏠 मेरे होम पर जाओ (my home)</Btn>
     </div>
   )
 }

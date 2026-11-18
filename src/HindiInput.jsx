@@ -55,22 +55,22 @@ export default function HindiInput({ value, onChange, disabled, placeholder, key
       <input value={value} disabled={disabled} onChange={e => onChange(e.target.value)} lang="hi" placeholder={placeholder}
         className={`w-full ${small ? 'text-xl p-3' : 'text-2xl p-4'} rounded-2xl border-2 border-indigo-200 focus:outline-none focus:border-indigo-500 bg-white`} />
       {hasRoman(value) && !disabled && (
-        <button onClick={() => onChange(toHindi(value))} className="w-full py-2 rounded-xl bg-amber-100 border-2 border-amber-300 font-semibold">
+        <button type="button" onClick={() => onChange(toHindi(value))} className="w-full py-2 rounded-xl bg-amber-100 border-2 border-amber-300 font-semibold">
           🔤 → अ हिंदी में बदलो: <span className="text-lg">{toHindi(value)}</span>
         </button>
       )}
-      <button onClick={() => setKb(k => !k)} disabled={disabled} className="text-sm text-indigo-700 underline">⌨️ {kb ? 'कीबोर्ड छिपाओ (hide keyboard)' : 'हिंदी कीबोर्ड दिखाओ (show Hindi keyboard)'}</button>
+      <button type="button" onClick={() => setKb(k => !k)} disabled={disabled} className="text-sm text-indigo-700 underline">⌨️ {kb ? 'कीबोर्ड छिपाओ (hide keyboard)' : 'हिंदी कीबोर्ड दिखाओ (show Hindi keyboard)'}</button>
       {kb && !disabled && (
         <div className="bg-slate-100 rounded-2xl p-2 space-y-1 select-none">
           {ROWS.map((r, i) => (
             <div key={i} className="flex flex-wrap justify-center gap-1">
-              {r.map(k => <button key={k} onClick={() => press(k)} className="min-w-9 h-11 px-1 text-xl rounded-lg bg-white shadow-sm active:bg-indigo-100">{k}</button>)}
+              {r.map(k => <button type="button" key={k} onClick={() => press(k)} className="min-w-9 h-11 px-1 text-xl rounded-lg bg-white shadow-sm active:bg-indigo-100">{k}</button>)}
             </div>
           ))}
           <div className="flex gap-1">
-            <button onClick={() => press(' ')} className="flex-1 h-11 rounded-lg bg-white shadow-sm">स्पेस (space)</button>
-            <button onClick={() => press('।')} className="w-12 h-11 rounded-lg bg-white shadow-sm text-xl">।</button>
-            <button onClick={() => onChange([...value].slice(0, -1).join(''))} className="w-16 h-11 rounded-lg bg-white shadow-sm text-xl">⌫</button>
+            <button type="button" onClick={() => press(' ')} className="flex-1 h-11 rounded-lg bg-white shadow-sm">स्पेस (space)</button>
+            <button type="button" onClick={() => press('।')} className="w-12 h-11 rounded-lg bg-white shadow-sm text-xl">।</button>
+            <button type="button" onClick={() => onChange([...value].slice(0, -1).join(''))} className="w-16 h-11 rounded-lg bg-white shadow-sm text-xl">⌫</button>
           </div>
         </div>
       )}

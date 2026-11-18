@@ -1,8 +1,24 @@
+import { useState } from 'react'
 import { speak } from './speech'
 
 export function Btn({ kind = 'primary', wide, className = '', ...p }) {
   const k = kind === 'primary' ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30' : 'bg-white border-2 border-slate-200'
   return <button {...p} className={`${k} ${wide ? 'w-full' : ''} px-5 py-3 rounded-2xl text-lg font-semibold active:scale-95 transition disabled:opacity-40 ${className}`} />
+}
+
+// A destructive action that asks inside the page first (no browser pop-ups on a shared tablet).
+export function ConfirmBtn({ label, question, yes, onYes }) {
+  const [ask, setAsk] = useState(false)
+  if (!ask) return <button type="button" onClick={() => setAsk(true)} className="w-full py-3 rounded-2xl bg-white border-2 border-rose-200 text-rose-700 font-semibold">{label}</button>
+  return (
+    <div className="bg-rose-50 border-2 border-rose-300 rounded-2xl p-3 space-y-2">
+      <p className="font-semibold">{question}</p>
+      <div className="flex gap-2">
+        <button type="button" onClick={() => { setAsk(false); onYes() }} className="flex-1 py-2 rounded-xl bg-rose-600 text-white font-semibold">{yes}</button>
+        <button type="button" onClick={() => setAsk(false)} className="flex-1 py-2 rounded-xl bg-white border-2 border-slate-200">नहीं (cancel)</button>
+      </div>
+    </div>
+  )
 }
 
 // Asked as a language choice ("how do you say it about yourself?"), not a personal question.
