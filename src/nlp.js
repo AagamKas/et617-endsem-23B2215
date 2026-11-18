@@ -17,7 +17,9 @@ export const NOUNS = {
 }
 
 // Words that never carry gender agreement (auxiliaries, adverbs, postpositions)
-const NEUTRAL = new Set(['है', 'हैं', 'हूं', 'हो', 'बहुत', 'रोज', 'आज', 'को', 'में', 'से', 'पर', 'का', 'की', 'के', 'भी', 'नहीं', 'और', 'पैदल', 'गरम', 'लाल'])
+const NEUTRAL = new Set(['है', 'हैं', 'हूं', 'हो', 'बहुत', 'रोज', 'आज', 'को', 'में', 'से', 'पर', 'का', 'की', 'के', 'भी', 'नहीं', 'और', 'पैदल', 'गरम', 'लाल',
+  // bare verb stems before रहा/रही, गया/गई — they do not inflect for gender
+  'जा', 'आ', 'खा', 'ला', 'गा', 'पा', 'सो', 'दे', 'ले', 'पी', 'सी', 'बना', 'पढ़', 'खेल', 'दौड़', 'कर'])
 const PRONOUNS = new Set(['मैं', 'हम', 'तुम', 'वह', 'वो', 'ये', 'यह'])
 
 // Accepted pronunciation / spelling variants (shown to the learner as "both are fine")
