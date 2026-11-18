@@ -68,33 +68,50 @@ Children in Hindi-medium schools in urban settlements often speak a regional var
 | Dialect at home | "हम" + -ते and nukta-less speech **accepted**; only gender errors corrected |
 | Knows मेरा/मेरी for people | "मेरा या मेरी?" trick to test any noun's gender (the app's name) |
 
-## D3 – Content plan (one complete learning activity, ≤10 min)
-1. **Warm-up (1 min):** pick or create your profile on the shared tablet. If you're a returning learner, "Continue where you left off".
-2. **Explain (2 min):** "मेरा / मेरी" with picture pairs (लड़का–लड़की, घोड़ा–घोड़ी) → the noun decides the ending of its adjective and verb. Spoken aloud (text-to-speech) for low-reading learners. Highlighted endings: **-आ** (blue) / **-ई** (pink).
-3. **Practise (5–6 min), 6 tasks in 4 formats:**
-   - T1 MCQ: *"पानी ___ है"*: ठंडा / ठंडी (targets M1)
-   - T2 MCQ: *"किताब ___ है"*: अच्छा / अच्छी (targets M2)
-   - T3 Sort: drag/tap nouns into पुल्लिंग / स्त्रीलिंग (पानी, किताब, घोड़ा, बस, दही, नदी)
-   - T4 Fix the sentence (typed, with spelling feedback): *"बस आया"* → *"बस आई"*
-   - T5 Build a sentence from word tiles: (लड़की / खेल रही / है)
-   - T6 Speak it (speech recognition, hi-IN): say *"मेरी बहन स्कूल जाती है"*
-4. **Wrap-up (1 min):** stars, a recap of the rule, and what's next time.
+## D3 – Content plan: one complete 10-minute sequence
+| # | Step | Format | Targets | ~Time |
+|---|---|---|---|---|
+| 0 | Pick your profile on the shared tablet (or resume) | Tap | C4, L2 | 0:20 |
+| 0b | Returning learner only: warm-up item on last session's misconception | MCQ | Adaptivity (profile) | 0:20 |
+| 1 | **Explain:** 3 picture cards (लड़का/लड़की, घोड़ा/बस, पानी/किताब), endings highlighted **-आ** blue / **-ई** pink, 🔊 read-aloud. Rule: *"जिसकी बात हो रही है, उसी से शब्द का अंत बदलता है।"* | Explanation | O1, O2 | 2:00 |
+| 2 | *पानी ___ है।* ठंडा / ठंडी | MCQ | **M1** | 0:30 |
+| 3 | *मेरी किताब बहुत ___ है।* अच्छा / अच्छी | MCQ | **M2** | 0:30 |
+| 4 | Sort पानी, किताब, घोड़ा, बस, दही, नदी → पुल्लिंग / स्त्रीलिंग | Sorting | O1, M1+M2 | 1:00 |
+| 5 | Fix *"बस आया"* → *"बस आई"* | Typed + spelling feedback (आइ → आई) | O2, M2 | 1:00 |
+| 6 | **क्यों?** Why did we write *बस आई*? (a) बस स्त्रीलिंग है — "मेरी बस" ✓ (b) लिखने वाली लड़की है ✗ (c) "आई" ज़्यादा सुंदर है ✗ | Reasoning choice | **O3** | 0:30 |
+| 7 | Build *लड़की खेल रही है* from tiles (distractor: रहा) | Word tiles | O2 | 0:45 |
+| 8 | Speak: *"तुम रोज़ स्कूल कैसे जाती हो?"* | Speech in + speech out | O2, design challenge | 1:00 |
+| + | Re-teach card + targeted item, only if M1 / M2 / agreement error diagnosed (max 2 extra) | — | Adaptivity (performance) | 0–1:30 |
+| 9 | Recap: stars, today's rule, the "मेरा/मेरी" trick | Summary | — | 0:30 |
+| | **Total: 7 tasks, 6 formats** | | | **≈ 8–9.5 min** |
 
-**Feedback:** correct → praise plus the reason; M1-type error → "Not every -ई word is feminine! पानी is masculine, so we say ठंडा पानी"; M2-type error → "Objects have gender too: किताब is feminine, so अच्छी किताब". Two wrong answers in a row → re-teach card + an easier item (adaptivity).
+**Model answers:** ठंडा · अच्छी · पुल्लिंग: पानी, घोड़ा, दही / स्त्रीलिंग: किताब, बस, नदी · बस आई। · (a) · लड़की खेल रही है · मैं रोज़ स्कूल जाती हूँ।
 
-## Design challenge (P2): error vs acceptable variation
-The agreement checker only judges **gender agreement between noun and verb/adjective**. It does not penalise:
-- **Dialect variation (accepted):** *"हम स्कूल जाते हैं"* used for "I" (Bhojpuri-influenced singular हम). The app accepts it with a note: "बिल्कुल ठीक! (Some people say मैं, some say हम, and both are fine.)"
-- **Pronunciation variation (accepted):** speech input *"जरूर"* for *"ज़रूर"* (nukta dropped), or ड़/ड. Recognised text is normalised before checking.
-- **Language error (corrected):** *"मेरी भाई"*, *"पानी ठंडी है"*: a real agreement error, with feedback.
+**Feedback (two levels: hint first, so the learner can find her own error; then explanation + model answer):**
+- **Correct:** *शाबाश! ✓ "पानी" पुल्लिंग है, इसलिए यही सही है।*
+- **M1 hint:** *"पानी" के अंत में -ई है… पर क्या हर -ई वाला शब्द स्त्रीलिंग होता है? बोलकर देखो: "मेरा पानी" या "मेरी पानी"?* → **M1 explanation:** *"पानी" के अंत में -ई है, पर यह पुल्लिंग है! इसलिए "ठंडा" आएगा, "ठंडी" नहीं।*
+- **M2 hint:** *क्या चीज़ें हमेशा पुल्लिंग होती हैं? बोलकर देखो: "मेरा किताब" या "मेरी किताब"?* → **M2 explanation:** *चीज़ों का भी लिंग होता है! "किताब" स्त्रीलिंग है (मेरी किताब)। इसलिए "अच्छी" आएगा।*
+- After an M1/M2 diagnosis → re-teach card (*"हर -ई वाला शब्द स्त्रीलिंग नहीं होता!"* / *"चीज़ों का भी लिंग होता है!"*) + targeted item (*दही ___ है* / *सड़क बहुत ___ है*).
 
-## C4 – 10-minute sessions
-Visible session timer/progress bar (10 min budget), 6 short steps, an auto-save after every step, and a "Stop for now" button. Per-child profiles on the shared tablet so each child resumes their own position.
+## Adaptivity rules
+- **Performance:** 1st wrong → hint (no answer); 2nd wrong → explanation + model answer; diagnosed misconception → re-teach card + targeted item inserted next (once per misconception).
+- **Profile:** learner gender sets the expected मैं-forms (जाती/जाता); a returning learner's next session opens with items for previously diagnosed misconceptions.
+- **Interaction:** taps on 🔊 are logged; after 3 taps every new prompt is read aloud automatically.
 
-## Planned NLP / AI
-- Rule-based Hindi agreement checker (noun-gender lexicon + ending analysis) as the primary, reliable checker.
-- Browser speech recognition (Web Speech API, hi-IN) + text-to-speech for spoken items.
-- Optional LLM for contextual sentence generation/explanations, with lexicon validation and a recorded fallback (details in report D6).
+## Design challenge (P2): error vs acceptable variation — three different responses
+The checker only judges **gender agreement between the noun and its adjective/verb/possessive**.
+- **Language error → corrected:** *"पानी ठंडी है"*, *"बस आया"*, *"मैं स्कूल जाता हूँ"* (girl) → hint → explanation → retry.
+- **Dialect variation → accepted and bridged:** *"हम रोज स्कूल जाते हैं"* (Bhojpuri-influenced हम for "I"; girls also use -ते) → ✓ with no lost stars, plus a blue tip, not an error: *"स्कूल की हिंदी में, अगर सिर्फ़ अपनी बात हो: मैं रोज स्कूल जाती हूँ।"* (Worded "if you mean only yourself" because हम also means "we".)
+- **Pronunciation variation → accepted:** *रोज / रोज़*, *जरूर / ज़रूर*, *लडकी / लड़की*. Text is normalised (nukta removed) before checking, with the note "दोनों ठीक हैं".
+
+## C4 – 10-minute sessions (visible in the app)
+⏱ timer "x:xx / 10:00" and progress bar on every task screen; 7 short tasks fitting in ≈ 9 minutes; auto-save every second and after every step; "⏸ अभी रुको" stop button; "▶ जहाँ छोड़ा था, वहीं से" resume; per-child profiles so each child on the shared tablet resumes their own position; a gentle "10 मिनट पूरे" notice at 10:00.
+
+## NLP / AI features
+- **Rule-based Hindi agreement checker** (`src/nlp.js`): normalisation → subject detection with a noun-gender lexicon → ending analysis of agreeing words → classification (ok / dialect / M1 / M2 / agreement). Regression tests in `tests/nlp.test.mjs`.
+- **Spelling feedback** for the इ/ई matra (आइ → आई).
+- **Speech recognition** (browser Web Speech API, hi-IN) for the speaking task, with a typed fallback; **text-to-speech** (hi-IN, slowed) for prompts and feedback.
+- No LLM is used (no API key available): every judgement is deterministic and explainable, which avoids wrong AI feedback reaching a 11-year-old.
 
 ## Tech
 Vite + React + Tailwind CSS (starter: `npm create vite`, template `react`). Hosted on Vercel at et617-23b2215.vercel.app. Progress stored per profile in localStorage.
