@@ -1,0 +1,252 @@
+import { useState } from 'react'
+import { checkAgreement, nounInfo } from './nlp'
+import { G_NAME } from './data'
+import { canListen, listen, speak } from './speech'
+import { Btn, Speaker } from './ui'
+
+// Feedback text. Level 1 (first wrong try) = a hint that makes the learner test their own idea
+// without giving the answer. Level 2 (second wrong try) = full explanation + model answer.
+export function feedbackFor(r, level, gender) {
+  const s = r.subject, G = G_NAME[r.gender] ?? ''
+  if (r.type === 'ok' && !r.gender) return { tone: 'good', hi: 'शाबाश! ✓ सब शब्द सही डिब्बे में हैं।', en: 'All correct!' }
+  if (r.type === 'spelling') return { tone: 'hint', hi: 'लगभग सही! बस वर्तनी (spelling) ठीक करो।', en: 'Almost there — just fix the spelling.' }
+  if (r.type === 'ok') return { tone: 'good', hi: `शाबाश! ✓ "${s}" ${G} है, इसलिए यही सही है।`, en: `Correct — "${s}" is ${r.gender === 'm' ? 'masculine' : 'feminine'}.` }
+  if (r.type === 'dialect') return { tone: 'good', hi: 'बिल्कुल ठीक! ✓', en: 'Correct — this is an accepted dialect form, not an error.' }
+  if (r.type === 'M1') return level === 1
+    ? { tone: 'hint', hi: `"${s}" के अंत में -ई है… पर क्या हर -ई वाला शब्द स्त्रीलिंग होता है? बोलकर देखो: "मेरा ${s}" या "मेरी ${s}"?`, en: 'Hint: does every word ending in -ई have to be feminine?' }
+    : { tone: 'bad', hi: `"${s}" के अंत में -ई है, पर यह पुल्लिंग है! इसलिए "${r.fix}" आएगा, "${r.wrong}" नहीं।`, en: `${s} ends in -ई but is masculine, so "${r.fix}".` }
+  if (r.type === 'M2') return level === 1
+    ? { tone: 'hint', hi: `क्या चीज़ें हमेशा पुल्लिंग होती हैं? बोलकर देखो: "मेरा ${s}" या "मेरी ${s}"?`, en: 'Hint: are objects always masculine?' }
+    : { tone: 'bad', hi: `चीज़ों का भी लिंग होता है! "${s}" स्त्रीलिंग है (मेरी ${s})। इसलिए "${r.fix}" आएगा, "${r.wrong}" नहीं।`, en: `${s} is feminine, so "${r.fix}".` }
+  if (r.type === 'agreement') {
+    const who = s === 'मैं' ? (gender === 'f' ? 'तुम लड़की हो' : 'तुम लड़का हो') : `"${s}" ${G} है`
+    return level === 1
+      ? { tone: 'hint', hi: `वाक्य में किसकी बात हो रही है? ${who} — क्या "${r.wrong}" उससे मिलता है?`, en: 'Hint: find the noun and match the ending to it.' }
+      : { tone: 'bad', hi: `${who}, इसलिए "${r.wrong}" की जगह "${r.fix}" आएगा।`, en: `Match the noun: "${r.fix}", not "${r.wrong}".` }
+  }
+  return { tone: 'hint', hi: 'हमें वाक्य में संज्ञा नहीं मिली। पूरा वाक्य बोलो या लिखो।', en: "We couldn't find the noun — try a full sentence." }
+}
+
+function Feedback({ fb, notes = [], model, onRetry, onNext }) {
+  const box = { good: 'bg-emerald-50 border-emerald-400', hint: 'bg-amber-50 border-amber-400', bad: 'bg-rose-50 border-rose-400' }[fb.tone]
+  return (
+    <div className={`border-2 rounded-2xl p-4 space-y-2 ${box}`} aria-live="polite">
+      <div className="flex gap-2 items-start">
+        <p className="text-lg font-semibold flex-1">{fb.hi}</p>
+        <Speaker text={fb.hi} />
+      </div>
+      <p className="text-sm text-slate-500">{fb.en}</p>
+      {notes.map((n, i) => <p key={i} className="text-sm bg-white/70 rounded-lg p-2">🗣️ {n}</p>)}
+      {model && <p className="font-semibold">सही उत्तर: <span className="text-emerald-700">{model}</span></p>}
+      <div className="flex gap-2 pt-1">
+        {onRetry && <Btn onClick={onRetry} kind="ghost">🔁 फिर से करो</Btn>}
+        {onNext && <Btn onClick={onNext}>आगे चलो →</Btn>}
+      </div>
+    </div>
+  )
+}
+
+export default function Task({ id, task, profile, onDone }) {
+  const [tries, setTries] = useState(0)
+  const [result, setResult] = useState(null) // { r, correct }
+  const [attempts, setAttempts] = useState([])
+
+  function submit(r, correct, input) {
+    const n = tries + 1
+    setTries(n)
+    setResult({ r, correct })
+    const entry = { step: id, input, type: correct ? (r.type === 'dialect' ? 'dialect' : 'ok') : r.type, attempt: n, at: Date.now() }
+    setAttempts(a => [...a, entry])
+    const fb = feedbackFor(r, correct ? 0 : n, profile.gender)
+    speak(fb.hi) // spoken feedback for early readers
+  }
+  const finish = () => onDone({ firstTry: attempts[0]?.type === 'ok' || attempts[0]?.type === 'dialect', diagnosed: attempts.find(a => ['M1', 'M2', 'agreement'].includes(a.type))?.type, log: attempts })
+  const retry = () => setResult(null)
+
+  const level = result && !result.correct ? Math.min(tries, 2) : 0
+  const fb = result && feedbackFor(result.r, level, profile.gender)
+  const model = result && !result.correct && tries >= 2 ? modelAnswer(task, profile.gender) : null
+  const fbEl = result && (
+    <Feedback fb={fb} notes={result.r.notes} model={model}
+      onRetry={!result.correct && tries < 2 ? retry : null}
+      onNext={result.correct || tries >= 2 ? finish : null} />
+  )
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <div className="flex items-center gap-2">
+          <h2 className="text-2xl font-bold flex-1">{task.title}</h2>
+          {task.pic && <span className="text-4xl">{task.pic}</span>}
+        </div>
+        <p className="text-sm text-slate-500">{task.en}</p>
+      </div>
+      {task.kind === 'mcq' && <Mcq task={task} profile={profile} locked={!!result} onSubmit={submit} />}
+      {task.kind === 'sort' && <Sort task={task} locked={!!result} onSubmit={submit} />}
+      {task.kind === 'fix' && <Fix task={task} profile={profile} locked={!!result} onSubmit={submit} />}
+      {task.kind === 'tiles' && <Tiles task={task} profile={profile} locked={!!result} onSubmit={submit} />}
+      {task.kind === 'speak' && <Speak profile={profile} locked={!!result} onSubmit={submit} />}
+      {fbEl}
+    </div>
+  )
+}
+
+function modelAnswer(task, gender) {
+  if (task.kind === 'mcq') return task.sentence.replace('___', task.answer)
+  if (task.kind === 'sort') return task.words.map(([w]) => `${w} (${G_NAME[nounInfo(w).g]})`).join(', ')
+  if (task.kind === 'speak') return gender === 'f' ? 'मैं रोज़ स्कूल जाती हूँ।' : 'मैं रोज़ स्कूल जाता हूँ।'
+  return task.model
+}
+
+// ---------- Format 1: multiple choice ----------
+function Mcq({ task, profile, locked, onSubmit }) {
+  const [parts] = useState(() => task.sentence.split('___'))
+  const [pick, setPick] = useState(null)
+  return (
+    <div className="space-y-4">
+      <div className="bg-white rounded-2xl p-5 text-3xl text-center font-semibold flex justify-center items-center gap-2 flex-wrap">
+        {parts[0]}<span className="min-w-20 border-b-4 border-dashed border-indigo-400 text-indigo-700">{pick ?? ' '}</span>{parts[1]}
+        <Speaker text={task.sentence.replace('___', '…')} />
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        {task.options.map(o => (
+          <button key={o} disabled={locked} onClick={() => {
+            setPick(o)
+            const sentence = task.sentence.replace('___', o)
+            onSubmit(checkAgreement(sentence, profile.gender), o === task.answer, sentence)
+          }} className="py-5 text-2xl font-bold rounded-2xl bg-white border-2 border-indigo-200 active:scale-95 disabled:opacity-60 shadow-sm">{o}</button>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+// ---------- Format 2: sort into masculine / feminine (tap word, then tap box) ----------
+function Sort({ task, locked, onSubmit }) {
+  const [placed, setPlaced] = useState({})
+  const [sel, setSel] = useState(null)
+  const left = task.words.filter(([w]) => !placed[w])
+  const put = g => { if (sel) { setPlaced(p => ({ ...p, [sel]: g })); setSel(null) } }
+  function check() {
+    const wrong = task.words.map(([w]) => w).filter(w => placed[w] !== nounInfo(w).g)
+    if (!wrong.length) return onSubmit({ type: 'ok', subject: 'सब शब्द', gender: null, notes: [] }, true, JSON.stringify(placed))
+    const w = wrong[0], n = nounInfo(w)
+    const type = n.g === 'm' && /ी$/.test(w) ? 'M1' : n.g === 'f' && !n.animate ? 'M2' : 'agreement'
+    onSubmit({ type, subject: w, gender: n.g, wrong: G_NAME[placed[w]], fix: G_NAME[n.g], notes: wrong.length > 1 ? [`${wrong.length} शब्द गलत डिब्बे में हैं: ${wrong.join(', ')}`] : [] }, false, JSON.stringify(placed))
+  }
+  const Box = ({ g, label, color }) => (
+    <button onClick={() => put(g)} disabled={locked} className={`min-h-36 rounded-2xl border-4 border-dashed p-3 text-left ${color} ${sel ? 'ring-4 ring-indigo-300' : ''}`}>
+      <div className="font-bold">{label}</div>
+      <div className="flex flex-wrap gap-1 mt-2">
+        {task.words.filter(([w]) => placed[w] === g).map(([w, e]) => (
+          <span key={w} onClick={ev => { if (locked) return; ev.stopPropagation(); setPlaced(p => { const q = { ...p }; delete q[w]; return q }) }} className="px-2 py-1 bg-white rounded-lg text-lg">{e} {w}</span>
+        ))}
+      </div>
+    </button>
+  )
+  return (
+    <div className="space-y-4">
+      <p className="text-sm">पहले शब्द पर टैप करो, फिर डिब्बे पर। <span className="text-slate-500">(Tap a word, then a box. Tap a placed word to take it back.)</span></p>
+      <div className="flex flex-wrap gap-2 min-h-12">
+        {left.map(([w, e]) => (
+          <button key={w} disabled={locked} onClick={() => setSel(w)} className={`px-4 py-2 text-xl rounded-xl bg-white border-2 shadow-sm ${sel === w ? 'border-indigo-500 ring-2 ring-indigo-300' : 'border-slate-200'}`}>{e} {w}</button>
+        ))}
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <Box g="m" label="पुल्लिंग (मेरा)" color="border-sky-400 bg-sky-50" />
+        <Box g="f" label="स्त्रीलिंग (मेरी)" color="border-pink-400 bg-pink-50" />
+      </div>
+      {!locked && <Btn onClick={check} disabled={left.length > 0} wide>जाँचो ✓</Btn>}
+    </div>
+  )
+}
+
+// ---------- Format 3: fix the sentence (typed, with spelling feedback) ----------
+const KEYS = ['ा', 'ी', 'ि', 'ई', 'इ', 'या', 'आ', 'े', 'ं', '।']
+function Fix({ task, profile, locked, onSubmit }) {
+  const [text, setText] = useState(task.wrongSentence)
+  function check() {
+    if (/आइ/.test(text)) return onSubmit({ type: 'spelling', subject: task.mustHave, notes: ['वर्तनी: "आइ" नहीं, "आई" — यहाँ बड़ी ई (ई) लगती है। (Spelling: use the long ई.)'] }, false, text)
+    const r = checkAgreement(text, profile.gender)
+    const correct = r.ok && text.includes(task.mustHave) && text.replace(/[।\s]/g, '') !== task.wrongSentence.replace(/[।\s]/g, '')
+    onSubmit(correct ? r : (r.type === 'ok' ? { ...r, type: 'unknown' } : r), correct, text)
+  }
+  return (
+    <div className="space-y-3">
+      <div className="bg-white rounded-2xl p-4 text-2xl text-center"><s className="text-rose-500">{task.wrongSentence}</s> <Speaker text={task.wrongSentence} /></div>
+      <input value={text} disabled={locked} onChange={e => setText(e.target.value)} lang="hi"
+        className="w-full text-2xl p-4 rounded-2xl border-2 border-indigo-200 focus:outline-none focus:border-indigo-500 bg-white" />
+      <div className="flex flex-wrap gap-2">
+        {KEYS.map(k => <button key={k} disabled={locked} onClick={() => setText(t => t + k)} className="w-12 h-12 text-xl rounded-xl bg-white border shadow-sm active:scale-95">{k}</button>)}
+        <button disabled={locked} onClick={() => setText(t => [...t].slice(0, -1).join(''))} className="px-3 h-12 rounded-xl bg-white border shadow-sm">⌫</button>
+      </div>
+      {!locked && <Btn onClick={check} wide>जाँचो ✓</Btn>}
+    </div>
+  )
+}
+
+// ---------- Format 4: build the sentence from word tiles ----------
+function Tiles({ task, profile, locked, onSubmit }) {
+  const [built, setBuilt] = useState([])
+  const remaining = task.tiles.filter((t, i) => !built.includes(i))
+  function check() {
+    const s = built.map(i => task.tiles[i]).join(' ')
+    const r = checkAgreement(s, profile.gender)
+    const correct = task.accept.includes(s)
+    onSubmit(correct ? r : (r.type === 'ok' ? { ...r, type: 'unknown', notes: ['शब्दों का क्रम देखो: कौन, क्या कर रहा/रही है, है।'] } : r), correct, s)
+  }
+  return (
+    <div className="space-y-4">
+      <div className="bg-white rounded-2xl p-4 min-h-20 flex flex-wrap gap-2 items-center border-2 border-dashed border-indigo-300">
+        {built.length === 0 && <span className="text-slate-400">यहाँ वाक्य बनेगा…</span>}
+        {built.map((i, k) => <button key={k} disabled={locked} onClick={() => setBuilt(b => b.filter(x => x !== i))} className="px-4 py-2 text-xl rounded-xl bg-indigo-600 text-white">{task.tiles[i]}</button>)}
+      </div>
+      <div className="flex flex-wrap gap-2">
+        {task.tiles.map((t, i) => !built.includes(i) && <button key={i} disabled={locked} onClick={() => setBuilt(b => [...b, i])} className="px-4 py-2 text-xl rounded-xl bg-white border-2 border-slate-200 shadow-sm active:scale-95">{t}</button>)}
+      </div>
+      {!locked && <Btn onClick={check} disabled={built.length < 4} wide>जाँचो ✓</Btn>}
+      {remaining.length === 0 && null}
+    </div>
+  )
+}
+
+// ---------- Format 5: speak (speech recognition in, speech out) ----------
+function Speak({ profile, locked, onSubmit }) {
+  const [heard, setHeard] = useState('')
+  const [state, setState] = useState('idle')
+  const [typed, setTyped] = useState('')
+  const q = profile.gender === 'f' ? 'तुम रोज़ स्कूल कैसे जाती हो?' : 'तुम रोज़ स्कूल कैसे जाते हो?'
+  const eg = profile.gender === 'f' ? 'मैं रोज़ स्कूल जाती हूँ।' : 'मैं रोज़ स्कूल जाता हूँ।'
+  const run = text => { const r = checkAgreement(text, profile.gender); onSubmit(r, !!r.ok, text) }
+  function mic() {
+    setState('listening'); setHeard('')
+    listen({
+      onResult: t => { setHeard(t); setState('idle'); run(t) },
+      onError: () => setState('error'),
+      onEnd: () => setState(s => (s === 'listening' ? 'idle' : s)),
+    })
+  }
+  return (
+    <div className="space-y-4">
+      <div className="bg-white rounded-2xl p-4 text-xl flex items-center gap-2">
+        <span className="flex-1 font-semibold">{q}</span><Speaker text={q} />
+      </div>
+      <p className="text-sm text-slate-500">पूरा वाक्य बोलो, जैसे: "{eg}" · अपनी बोली में बोलो, कोई बात नहीं!</p>
+      {canListen && (
+        <button disabled={locked || state === 'listening'} onClick={mic}
+          className={`w-full py-8 rounded-3xl text-2xl font-bold text-white shadow-lg active:scale-95 ${state === 'listening' ? 'bg-rose-500 animate-pulse' : 'bg-indigo-600'}`}>
+          {state === 'listening' ? '🎙️ सुन रहे हैं…' : '🎤 टैप करके बोलो'}
+        </button>
+      )}
+      {heard && <p className="text-center text-lg">तुमने कहा: "<b>{heard}</b>"</p>}
+      {(!canListen || state === 'error') && <p className="text-sm text-amber-700">माइक नहीं चल रहा — नीचे लिखकर भी जवाब दे सकते हो। (Mic unavailable — type instead.)</p>}
+      <details className="text-sm" open={!canListen || state === 'error'}>
+        <summary className="cursor-pointer text-slate-500">बोल नहीं पा रहे? लिखकर बताओ (type instead)</summary>
+        <div className="flex gap-2 mt-2">
+          <input value={typed} disabled={locked} onChange={e => setTyped(e.target.value)} lang="hi" placeholder={eg} className="flex-1 min-w-0 text-lg p-3 rounded-xl border-2 border-indigo-200 bg-white" />
+          <Btn disabled={locked || !typed.trim()} onClick={() => run(typed)}>भेजो</Btn>
+        </div>
+      </details>
+    </div>
+  )
+}
