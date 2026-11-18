@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { AVATARS, BASE_PLAN, G_NAME, LEARN, RETEACH, RULE, RULE_EN, TASKS } from './data'
+import { AVATARS, BASE_PLAN, G_NAME, LEARN, RETEACH, RULE, RULE_EN, RULE_SMALL, TASKS } from './data'
 import { SESSION_SECONDS, fmt, newProfile, useStore } from './store'
 import Task from './Task'
 import { Btn, Speaker } from './ui'
@@ -187,7 +187,8 @@ function Learn({ gender, onDone }) {
       <div className="flex justify-center gap-2">{LEARN.map((_, k) => <span key={k} className={`w-3 h-3 rounded-full ${k === i ? 'bg-indigo-600' : 'bg-slate-300'}`} />)}</div>
       {last && (
         <div className="bg-indigo-50 border-2 border-indigo-200 rounded-2xl p-4">
-          <p className="font-bold text-lg">📌 नियम: {RULE}</p>
+          <p className="font-bold text-xl">📌 {RULE}</p>
+          <p className="text-sm text-slate-600">{RULE_SMALL}</p>
           <p className="text-sm text-slate-500">{RULE_EN}</p>
         </div>
       )}

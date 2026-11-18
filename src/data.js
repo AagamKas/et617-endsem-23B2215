@@ -9,7 +9,9 @@ export const LEARN = [
   { pic: '💧 📕', say: 'पानी ठंडा है। मेरी किताब अच्छी है।', text: ['पानी ठंड', 'ा', ' है। मेरी किताब अच्छ', 'ी', ' है।'], tip: 'पानी के अंत में -ई है, फिर भी पुल्लिंग!' },
 ]
 
-export const RULE = 'वाक्य में जिसकी बात हो रही है (संज्ञा), उसी के लिंग से विशेषण और क्रिया का अंत बदलता है।'
+// Kept short and jargon-free for a first-generation 11-year-old; grammar terms only in small print.
+export const RULE = 'जिसकी बात हो रही है, उसी से शब्द का अंत बदलता है।'
+export const RULE_SMALL = '(संज्ञा का लिंग → विशेषण और क्रिया का अंत)'
 export const RULE_EN = 'The noun decides the ending: masculine → -आ / -या / -ता, feminine → -ई / -ती.'
 
 export const TASKS = {
