@@ -6,6 +6,12 @@ export function Btn({ kind = 'primary', wide, className = '', ...p }) {
   return <button {...p} className={`${k} ${wide ? 'w-full' : ''} px-5 py-3 rounded-2xl text-lg font-semibold active:scale-95 transition disabled:opacity-40 ${className}`} />
 }
 
+// English translation shown under a Hindi sentence (viva change: helps the teacher/volunteer and non-Hindi readers)
+export function En({ children, className = '' }) {
+  if (!children) return null
+  return <p className={`text-sm italic text-slate-500 ${className}`} lang="en">🇬🇧 {children}</p>
+}
+
 // A destructive action that asks inside the page first (no browser pop-ups on a shared tablet).
 export function ConfirmBtn({ label, question, yes, onYes }) {
   const [ask, setAsk] = useState(false)

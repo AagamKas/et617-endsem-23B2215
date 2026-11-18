@@ -4,9 +4,9 @@
 export const AVATARS = ['🦁', '🐯', '🐼', '🦜', '🐢', '🐘', '🌻', '⭐']
 
 export const LEARN = [
-  { pic: '👦 👧', say: 'लड़का अच्छा है। लड़की अच्छी है।', text: ['लड़का अच्छ', 'ा', ' है। लड़की अच्छ', 'ी', ' है।'], tip: 'लड़का → -आ (ा),  लड़की → -ई (ी)' },
-  { pic: '🐎 🚌', say: 'घोड़ा आया। बस आई।', text: ['घोड़ा आ', 'या', '। बस आ', 'ई', '।'], tip: 'चीज़ों का भी लिंग होता है! बस स्त्रीलिंग है।' },
-  { pic: '💧 📕', say: 'पानी ठंडा है। मेरी किताब अच्छी है।', text: ['पानी ठंड', 'ा', ' है। मेरी किताब अच्छ', 'ी', ' है।'], tip: 'पानी के अंत में -ई है, फिर भी पुल्लिंग!' },
+  { pic: '👦 👧', say: 'लड़का अच्छा है। लड़की अच्छी है।', text: ['लड़का अच्छ', 'ा', ' है। लड़की अच्छ', 'ी', ' है।'], tip: 'लड़का → -आ (ा),  लड़की → -ई (ी)', en: 'The boy is good. The girl is good.', tipEn: 'boy → -aa ending, girl → -ee ending' },
+  { pic: '🐎 🚌', say: 'घोड़ा आया। बस आई।', text: ['घोड़ा आ', 'या', '। बस आ', 'ई', '।'], tip: 'चीज़ों का भी लिंग होता है! बस स्त्रीलिंग है।', en: 'The horse came. The bus came.', tipEn: 'Things have gender too! "Bus" is feminine.' },
+  { pic: '💧 📕', say: 'पानी ठंडा है। मेरी किताब अच्छी है।', text: ['पानी ठंड', 'ा', ' है। मेरी किताब अच्छ', 'ी', ' है।'], tip: 'पानी के अंत में -ई है, फिर भी पुल्लिंग!', en: 'The water is cold. My book is good.', tipEn: '"Paani" (water) ends in -ee, but it is still masculine!' },
 ]
 
 // Kept short and jargon-free for a first-generation 11-year-old; grammar terms only in small print.
@@ -15,50 +15,50 @@ export const RULE_SMALL = '(संज्ञा का लिंग → विश
 export const RULE_EN = 'The noun decides the ending: masculine → -आ / -या / -ता, feminine → -ई / -ती.'
 
 export const TASKS = {
-  t1: { kind: 'mcq', pic: '💧', title: 'सही शब्द चुनो', en: 'Choose the right word', sentence: 'पानी ___ है।', options: ['ठंडा', 'ठंडी'], answer: 'ठंडा', targets: 'M1' },
-  t2: { kind: 'mcq', pic: '📕', title: 'सही शब्द चुनो', en: 'Choose the right word', sentence: 'मेरी किताब बहुत ___ है।', options: ['अच्छा', 'अच्छी'], answer: 'अच्छी', targets: 'M2' },
+  t1: { kind: 'mcq', pic: '💧', title: 'सही शब्द चुनो', en: 'Choose the right word', sentence: 'पानी ___ है।', sentenceEn: 'The water is ___ (cold).', options: ['ठंडा', 'ठंडी'], answer: 'ठंडा', targets: 'M1' },
+  t2: { kind: 'mcq', pic: '📕', title: 'सही शब्द चुनो', en: 'Choose the right word', sentence: 'मेरी किताब बहुत ___ है।', sentenceEn: 'My book is very ___ (good).', options: ['अच्छा', 'अच्छी'], answer: 'अच्छी', targets: 'M2' },
   t3: {
     kind: 'sort', title: 'शब्दों को सही डिब्बे में रखो', en: 'Sort the nouns: masculine or feminine?',
-    words: [['पानी', '💧'], ['किताब', '📕'], ['घोड़ा', '🐎'], ['बस', '🚌'], ['दही', '🥣'], ['नदी', '🏞️']],
+    words: [['पानी', '💧', 'water'], ['किताब', '📕', 'book'], ['घोड़ा', '🐎', 'horse'], ['बस', '🚌', 'bus'], ['दही', '🥣', 'curd'], ['नदी', '🏞️', 'river']],
   },
-  t4: { kind: 'fix', pic: '🚌', title: 'वाक्य ठीक करो', en: 'Fix the sentence (type it correctly)', wrongSentence: 'बस आया।', model: 'बस आई।', mustHave: 'बस' },
+  t4: { kind: 'fix', pic: '🚌', title: 'वाक्य ठीक करो', en: 'Fix the sentence (type it correctly)', wrongSentence: 'बस आया।', wrongEn: 'The bus came. (wrong ending: masculine आया)', model: 'बस आई।', mustHave: 'बस' },
   // Outcome 3 (explain why): each wrong option is a misconception the learner may actually hold.
   why: {
     kind: 'why', pic: '🤔', title: 'क्यों?', en: 'Why? Explain the change',
-    question: '"बस आया" को हमने "बस आई" क्यों किया?',
+    question: '"बस आया" को हमने "बस आई" क्यों किया?', questionEn: 'Why did we change "बस आया" to "बस आई" (the bus came)?',
     options: [
-      { text: 'क्योंकि "बस" स्त्रीलिंग है — हम कहते हैं "मेरी बस"', correct: true },
-      { text: 'क्योंकि वाक्य लिखने वाली लड़की है', type: 'agreement', hint: 'क्या शब्द का अंत लिखने वाले से बदलता है, या जिसकी बात हो रही है उससे? यहाँ बात किसकी हो रही है?', explain: 'शब्द का अंत लिखने वाले से नहीं, जिसकी बात हो रही है उससे बदलता है — यहाँ "बस" की बात है, और बस स्त्रीलिंग है।' },
-      { text: 'क्योंकि "आई" लिखना ज़्यादा सुंदर लगता है', type: 'guess', hint: 'यह नियम से होता है, सुंदरता से नहीं। "मेरा बस" या "मेरी बस" — कौन सही लगता है?', explain: '"मेरी बस" — बस स्त्रीलिंग है, इसलिए "आई"। यह नियम है, पसंद नहीं।' },
+      { text: 'क्योंकि "बस" स्त्रीलिंग है — हम कहते हैं "मेरी बस"', en: 'Because "bus" is feminine — we say "meri bus" (my bus)', correct: true },
+      { text: 'क्योंकि वाक्य लिखने वाली लड़की है', en: 'Because the person writing the sentence is a girl', type: 'agreement', hint: 'क्या शब्द का अंत लिखने वाले से बदलता है, या जिसकी बात हो रही है उससे? यहाँ बात किसकी हो रही है?', explain: 'शब्द का अंत लिखने वाले से नहीं, जिसकी बात हो रही है उससे बदलता है — यहाँ "बस" की बात है, और बस स्त्रीलिंग है।' },
+      { text: 'क्योंकि "आई" लिखना ज़्यादा सुंदर लगता है', en: 'Because "आई" looks nicer to write', type: 'guess', hint: 'यह नियम से होता है, सुंदरता से नहीं। "मेरा बस" या "मेरी बस" — कौन सही लगता है?', explain: '"मेरी बस" — बस स्त्रीलिंग है, इसलिए "आई"। यह नियम है, पसंद नहीं।' },
     ],
   },
-  t5: { kind: 'tiles', pic: '👧⚽', title: 'वाक्य बनाओ', en: 'Build the sentence from the tiles', tiles: ['रहा', 'लड़की', 'है', 'खेल', 'रही'], model: 'लड़की खेल रही है', accept: ['लड़की खेल रही है'] },
-  t6: { kind: 'speak', pic: '🏫🚶', title: 'बोलकर बताओ', en: 'Say it aloud: how do you go to school every day?' },
+  t5: { kind: 'tiles', pic: '👧⚽', title: 'वाक्य बनाओ', en: 'Build the sentence from the tiles', tiles: ['रहा', 'लड़की', 'है', 'खेल', 'रही'], model: 'लड़की खेल रही है', modelEn: 'Build: "The girl is playing."', accept: ['लड़की खेल रही है'] },
+  t6: { kind: 'speak', pic: '🏫🚶', title: 'बोलकर बताओ', en: 'Say it aloud: how do you go to school every day?', questionEn: 'How do you go to school every day?', exampleEn: 'e.g. "I go to school every day."' },
 
   // "One more of the same type" variants (learner-chosen practice; max 3 per session to fit in 10 minutes)
-  t1b: { kind: 'mcq', pic: '🐘', title: 'सही शब्द चुनो', en: 'Choose the right word', sentence: 'हाथी बहुत ___ है।', options: ['मोटा', 'मोटी'], answer: 'मोटा', targets: 'M1' },
-  t2b: { kind: 'mcq', pic: '🖊️', title: 'सही शब्द चुनो', en: 'Choose the right word', sentence: 'मेरी कलम ___ है।', options: ['नया', 'नई'], answer: 'नई', targets: 'M2' },
+  t1b: { kind: 'mcq', pic: '🐘', title: 'सही शब्द चुनो', en: 'Choose the right word', sentence: 'हाथी बहुत ___ है।', sentenceEn: 'The elephant is very ___ (fat).', options: ['मोटा', 'मोटी'], answer: 'मोटा', targets: 'M1' },
+  t2b: { kind: 'mcq', pic: '🖊️', title: 'सही शब्द चुनो', en: 'Choose the right word', sentence: 'मेरी कलम ___ है।', sentenceEn: 'My pen is ___ (new).', options: ['नया', 'नई'], answer: 'नई', targets: 'M2' },
   t3b: {
     kind: 'sort', title: 'शब्दों को सही डिब्बे में रखो', en: 'Sort the nouns: masculine or feminine?',
-    words: [['घी', '🧈'], ['कलम', '🖊️'], ['हाथी', '🐘'], ['सड़क', '🛣️'], ['आदमी', '👨'], ['चाय', '☕']],
+    words: [['घी', '🧈', 'ghee'], ['कलम', '🖊️', 'pen'], ['हाथी', '🐘', 'elephant'], ['सड़क', '🛣️', 'road'], ['आदमी', '👨', 'man'], ['चाय', '☕', 'tea']],
   },
-  t4b: { kind: 'fix', pic: '🛣️', title: 'वाक्य ठीक करो', en: 'Fix the sentence (type it correctly)', wrongSentence: 'सड़क टूटा है।', model: 'सड़क टूटी है।', mustHave: 'सड़क' },
+  t4b: { kind: 'fix', pic: '🛣️', title: 'वाक्य ठीक करो', en: 'Fix the sentence (type it correctly)', wrongSentence: 'सड़क टूटा है।', wrongEn: 'The road is broken. (wrong ending: masculine टूटा)', model: 'सड़क टूटी है।', mustHave: 'सड़क' },
   whyb: {
     kind: 'why', pic: '🤔', title: 'क्यों?', en: 'Why? Explain the change',
-    question: '"पानी ठंडी है" को हमने "पानी ठंडा है" क्यों किया?',
+    question: '"पानी ठंडी है" को हमने "पानी ठंडा है" क्यों किया?', questionEn: 'Why did we change "पानी ठंडी है" to "पानी ठंडा है" (the water is cold)?',
     options: [
-      { text: 'क्योंकि "पानी" पुल्लिंग है — हम कहते हैं "मेरा पानी"', correct: true },
-      { text: 'क्योंकि "पानी" के अंत में -ई है', type: 'M1', hint: 'क्या शब्द का अंत देखकर लिंग पता चलता है? "मेरा पानी" या "मेरी पानी" — बोलकर देखो।', explain: 'अंत में -ई होने से कोई शब्द स्त्रीलिंग नहीं हो जाता। "मेरा पानी" — पानी पुल्लिंग है, इसलिए "ठंडा"।' },
-      { text: 'क्योंकि पानी ठंडा अच्छा लगता है', type: 'guess', hint: 'यह नियम से होता है, पसंद से नहीं। "मेरा पानी" या "मेरी पानी"?', explain: '"मेरा पानी" — पानी पुल्लिंग है, इसलिए "ठंडा"। यह नियम है, पसंद नहीं।' },
+      { text: 'क्योंकि "पानी" पुल्लिंग है — हम कहते हैं "मेरा पानी"', en: 'Because "paani" (water) is masculine — we say "mera paani"', correct: true },
+      { text: 'क्योंकि "पानी" के अंत में -ई है', en: 'Because "paani" ends in -ee', type: 'M1', hint: 'क्या शब्द का अंत देखकर लिंग पता चलता है? "मेरा पानी" या "मेरी पानी" — बोलकर देखो।', explain: 'अंत में -ई होने से कोई शब्द स्त्रीलिंग नहीं हो जाता। "मेरा पानी" — पानी पुल्लिंग है, इसलिए "ठंडा"।' },
+      { text: 'क्योंकि पानी ठंडा अच्छा लगता है', en: 'Because cold water feels nice', type: 'guess', hint: 'यह नियम से होता है, पसंद से नहीं। "मेरा पानी" या "मेरी पानी"?', explain: '"मेरा पानी" — पानी पुल्लिंग है, इसलिए "ठंडा"। यह नियम है, पसंद नहीं।' },
     ],
   },
-  t5b: { kind: 'tiles', pic: '👩‍🍳', title: 'वाक्य बनाओ', en: 'Build the sentence from the tiles', tiles: ['बना', 'दीदी', 'रहा', 'है', 'खाना', 'रही'], model: 'दीदी खाना बना रही है', accept: ['दीदी खाना बना रही है'] },
-  t6b: { kind: 'speak', pic: '👩‍🍳', title: 'बोलकर बताओ', en: 'Say it aloud: what does your didi do?', question: 'तुम्हारी दीदी शाम को क्या करती है?', example: 'दीदी खाना बनाती है।' },
+  t5b: { kind: 'tiles', pic: '👩‍🍳', title: 'वाक्य बनाओ', en: 'Build the sentence from the tiles', tiles: ['बना', 'दीदी', 'रहा', 'है', 'खाना', 'रही'], model: 'दीदी खाना बना रही है', modelEn: 'Build: "Didi (elder sister) is cooking food."', accept: ['दीदी खाना बना रही है'] },
+  t6b: { kind: 'speak', pic: '👩‍🍳', title: 'बोलकर बताओ', en: 'Say it aloud: what does your didi do?', question: 'तुम्हारी दीदी शाम को क्या करती है?', example: 'दीदी खाना बनाती है।', questionEn: 'What does your didi do in the evening?', exampleEn: 'e.g. "Didi cooks food."' },
 
   // Remedial items, inserted only when the matching misconception is diagnosed (adaptivity)
-  rM1: { kind: 'mcq', remedial: 'M1', pic: '🥣', title: 'एक और कोशिश', en: 'One more, about -ई nouns', sentence: 'दही ___ है।', options: ['खट्टा', 'खट्टी'], answer: 'खट्टा' },
-  rM2: { kind: 'mcq', remedial: 'M2', pic: '🛣️', title: 'एक और कोशिश', en: 'One more, about objects', sentence: 'सड़क बहुत ___ है।', options: ['लंबा', 'लंबी'], answer: 'लंबी' },
-  ragree: { kind: 'mcq', remedial: 'agreement', pic: '👦⚽', title: 'एक और कोशिश', en: 'One more: match the noun', sentence: 'लड़का खेल ___ है।', options: ['रहा', 'रही'], answer: 'रहा' },
+  rM1: { kind: 'mcq', remedial: 'M1', pic: '🥣', title: 'एक और कोशिश', en: 'One more, about -ई nouns', sentence: 'दही ___ है।', sentenceEn: 'The curd is ___ (sour).', options: ['खट्टा', 'खट्टी'], answer: 'खट्टा' },
+  rM2: { kind: 'mcq', remedial: 'M2', pic: '🛣️', title: 'एक और कोशिश', en: 'One more, about objects', sentence: 'सड़क बहुत ___ है।', sentenceEn: 'The road is very ___ (long).', options: ['लंबा', 'लंबी'], answer: 'लंबी' },
+  ragree: { kind: 'mcq', remedial: 'agreement', pic: '👦⚽', title: 'एक और कोशिश', en: 'One more: match the noun', sentence: 'लड़का खेल ___ है।', sentenceEn: 'The boy is ___ (playing).', options: ['रहा', 'रही'], answer: 'रहा' },
 }
 
 export const ALT = { t1: 't1b', t2: 't2b', t3: 't3b', t4: 't4b', why: 'whyb', t5: 't5b', t6: 't6b' }
@@ -70,17 +70,17 @@ export const BASE_PLAN = ['learn', 't1', 't2', 't3', 't4', 'why', 't5', 't6', 'd
 export const RETEACH = {
   M1: {
     title: 'हर -ई वाला शब्द स्त्रीलिंग नहीं होता!', en: 'Not every word ending in -ई is feminine.',
-    body: 'कुछ शब्द -ई पर खत्म होते हैं पर पुल्लिंग हैं:', examples: ['ठंडा पानी 💧', 'खट्टा दही 🥣', 'मोटा हाथी 🐘', 'अच्छा आदमी 👨', 'सफ़ेद मोती ⚪'],
+    body: 'कुछ शब्द -ई पर खत्म होते हैं पर पुल्लिंग हैं:', examples: ['ठंडा पानी 💧', 'खट्टा दही 🥣', 'मोटा हाथी 🐘', 'अच्छा आदमी 👨', 'सफ़ेद मोती ⚪'], examplesEn: ['cold water', 'sour curd', 'fat elephant', 'good man', 'white pearl'], bodyEn: 'Some words end in -ee but are masculine:', trickEn: 'Trick: say "mera" or "meri" before it — "mera paani" ✓, "meri paani" ✗',
     trick: 'तरकीब: "मेरा" या "मेरी" लगाकर बोलो — "मेरा पानी" ✓, "मेरी पानी" ✗',
   },
   M2: {
     title: 'चीज़ों का भी लिंग होता है!', en: 'Objects have gender too — not all are masculine.',
-    body: 'ये चीज़ें स्त्रीलिंग हैं:', examples: ['अच्छी किताब 📕', 'बस आई 🚌', 'लंबी सड़क 🛣️', 'गरम चाय ☕', 'मेरी कलम 🖊️'],
+    body: 'ये चीज़ें स्त्रीलिंग हैं:', examples: ['अच्छी किताब 📕', 'बस आई 🚌', 'लंबी सड़क 🛣️', 'गरम चाय ☕', 'मेरी कलम 🖊️'], examplesEn: ['good book', 'the bus came', 'long road', 'hot tea', 'my pen'], bodyEn: 'These things are feminine:', trickEn: 'Trick: say "mera" or "meri" before it — "meri kitaab" ✓, "mera kitaab" ✗',
     trick: 'तरकीब: "मेरा" या "मेरी" लगाकर बोलो — "मेरी किताब" ✓, "मेरा किताब" ✗',
   },
   agreement: {
     title: 'संज्ञा से मिलाओ', en: 'Match the verb to the noun.',
-    body: 'लड़का हो तो -आ, लड़की हो तो -ई:', examples: ['लड़का खेल रहा है 👦', 'लड़की खेल रही है 👧', 'भाई आया 👦', 'बहन आई 👧'],
+    body: 'लड़का हो तो -आ, लड़की हो तो -ई:', examples: ['लड़का खेल रहा है 👦', 'लड़की खेल रही है 👧', 'भाई आया 👦', 'बहन आई 👧'], examplesEn: ['the boy is playing', 'the girl is playing', 'brother came', 'sister came'], bodyEn: 'If it is a boy, -aa; if it is a girl, -ee:', trickEn: 'First find the noun, then think about its gender.',
     trick: 'पहले संज्ञा ढूँढो, फिर उसका लिंग सोचो।',
   },
 }

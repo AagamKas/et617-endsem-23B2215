@@ -3,7 +3,7 @@ import { ALT, AVATARS, BASE_PLAN, G_NAME, LEARN, MAX_REDOS, RETEACH, RULE, RULE_
 import { SESSION_SECONDS, fmt, newProfile, useStore } from './store'
 import Task from './Task'
 import HindiInput from './HindiInput'
-import { Btn, ConfirmBtn, GenderPick, Speaker } from './ui'
+import { Btn, ConfirmBtn, En, GenderPick, Speaker } from './ui'
 
 const REMEDIAL = { M1: 'rM1', M2: 'rM2', agreement: 'ragree' }
 const AUTO_READ_AFTER = 3 // interaction adaptivity: after 3 taps on 🔊, read every new prompt aloud automatically
@@ -297,13 +297,15 @@ function Learn({ gender, onDone }) {
             ? <mark key={k} className={`px-1 rounded ${/ी|ई/.test(t) ? 'bg-pink-200' : 'bg-sky-200'}`}>{t}</mark>
             : <span key={k}>{t}</span>)}
         </p>
+        <En>{card.en}</En>
         <Speaker text={card.say} />
-        <p className="bg-amber-50 rounded-xl p-3 text-lg">💡 {card.tip}</p>
+        <div className="bg-amber-50 rounded-xl p-3"><p className="text-lg">💡 {card.tip}</p><En>{card.tipEn}</En></div>
       </div>
       <div className="flex justify-center gap-2">{LEARN.map((_, k) => <span key={k} className={`w-3 h-3 rounded-full ${k === i ? 'bg-indigo-600' : 'bg-slate-300'}`} />)}</div>
       {last && (
         <div className="bg-indigo-50 border-2 border-indigo-200 rounded-2xl p-4">
           <p className="font-bold text-xl">📌 {RULE}</p>
+          <En>Whatever the sentence is about decides how the word ends.</En>
           <p className="text-sm text-slate-600">{RULE_SMALL}</p>
           <p className="text-sm text-slate-500">{RULE_EN}</p>
         </div>
@@ -325,8 +327,9 @@ function Reteach({ type, onDone }) {
         <h2 className="text-2xl font-bold flex items-center gap-2">{c.title} <Speaker text={`${c.title} ${c.body} ${c.examples.join(', ')}`} /></h2>
         <p className="text-sm text-slate-500">{c.en}</p>
         <p className="text-lg">{c.body}</p>
-        <ul className="grid grid-cols-2 gap-2">{c.examples.map(e => <li key={e} className="bg-amber-50 rounded-xl p-2 text-lg">{e}</li>)}</ul>
-        <p className="bg-indigo-50 rounded-xl p-3 font-semibold">🪄 {c.trick}</p>
+        <En>{c.bodyEn}</En>
+        <ul className="grid grid-cols-2 gap-2">{c.examples.map((e, i) => <li key={e} className="bg-amber-50 rounded-xl p-2 text-lg">{e}<En className="text-xs not-italic">{c.examplesEn?.[i]}</En></li>)}</ul>
+        <div className="bg-indigo-50 rounded-xl p-3"><p className="font-semibold">🪄 {c.trick}</p><En>{c.trickEn}</En></div>
       </div>
       <Btn wide onClick={onDone}>एक और सवाल करके देखो →</Btn>
     </div>

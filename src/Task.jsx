@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { checkAgreement, nounInfo } from './nlp'
 import { G_NAME } from './data'
 import { canListen, listen, speak } from './speech'
-import { Btn, GenderPick, Speaker } from './ui'
+import { Btn, En, GenderPick, Speaker } from './ui'
 import HindiInput, { hasRoman } from './HindiInput'
 
 // Feedback text. Level 1 (first wrong try) = a hint that makes the learner test their own idea
@@ -137,6 +137,7 @@ function Mcq({ task, profile, locked, onSubmit }) {
         {parts[0]}<span className="min-w-20 border-b-4 border-dashed border-indigo-400 text-indigo-700">{pick ?? ' '}</span>{parts[1]}
         <Speaker text={task.sentence.replace('___', '…')} />
       </div>
+      <En className="text-center">{task.sentenceEn}</En>
       <div className="grid grid-cols-2 gap-3">
         {task.options.map(o => (
           <button key={o} disabled={locked} onClick={() => {
@@ -157,9 +158,10 @@ function Why({ task, locked, onSubmit }) {
       <div className="bg-white rounded-2xl p-4 text-xl font-semibold flex items-center gap-2">
         <span className="flex-1">{task.question}</span><Speaker text={task.question} />
       </div>
+      <En>{task.questionEn}</En>
       {task.options.map(o => (
         <button key={o.text} disabled={locked} onClick={() => onSubmit({ type: o.correct ? 'ok' : o.type, why: o, notes: [] }, !!o.correct, o.text)}
-          className="w-full text-left p-4 text-lg rounded-2xl bg-white border-2 border-indigo-200 active:scale-[.98] disabled:opacity-60 shadow-sm">{o.text}</button>
+          className="w-full text-left p-4 text-lg rounded-2xl bg-white border-2 border-indigo-200 active:scale-[.98] disabled:opacity-60 shadow-sm">{o.text}<En>{o.en}</En></button>
       ))}
     </div>
   )
@@ -222,11 +224,11 @@ function Sort({ task, locked, onSubmit }) {
       </div>
       <p className="text-sm">शब्द को <b>खींचकर</b> डिब्बे में डालो, या शब्द पर टैप करके फिर डिब्बे पर टैप करो। <span className="text-slate-500">(Drag a word into a box, or tap the word then the box. Tap a placed word to take it back.)</span></p>
       <div className="flex flex-wrap gap-2 min-h-12">
-        {left.map(([w, e]) => (
+        {left.map(([w, e, en]) => (
           <button key={w} disabled={locked} onClick={() => setSel(w)}
             onPointerDown={ev => { if (!locked) { ev.preventDefault(); setSel(w); setDrag({ w, e, x: ev.clientX, y: ev.clientY, moved: false }) } }}
             style={{ touchAction: 'none' }}
-            className={`px-4 py-2 text-xl rounded-xl bg-white border-2 shadow-sm cursor-grab ${drag?.w === w && drag.moved ? 'opacity-30' : ''} ${sel === w ? 'border-indigo-500 ring-2 ring-indigo-300' : 'border-slate-200'}`}>{e} {w}</button>
+            className={`px-4 py-2 text-xl rounded-xl bg-white border-2 shadow-sm cursor-grab ${drag?.w === w && drag.moved ? 'opacity-30' : ''} ${sel === w ? 'border-indigo-500 ring-2 ring-indigo-300' : 'border-slate-200'}`}>{e} {w}{en && <span className="block text-xs text-slate-500">{en}</span>}</button>
         ))}
       </div>
       {drag?.moved && <div className="fixed z-50 pointer-events-none px-4 py-2 text-xl rounded-xl bg-white border-2 border-indigo-500 shadow-xl" style={{ left: drag.x - 40, top: drag.y - 24 }}>{drag.e} {drag.w}</div>}
@@ -250,7 +252,7 @@ function Fix({ task, profile, locked, onSubmit }) {
   }
   return (
     <div className="space-y-3">
-      <div className="bg-white rounded-2xl p-4 text-2xl text-center"><s className="text-rose-500">{task.wrongSentence}</s> <Speaker text={task.wrongSentence} /></div>
+      <div className="bg-white rounded-2xl p-4 text-2xl text-center"><s className="text-rose-500">{task.wrongSentence}</s> <Speaker text={task.wrongSentence} /><En>{task.wrongEn}</En></div>
       <p className="text-sm">ऊपर का गलत वाक्य नीचे ठीक करके लिखो। <span className="text-slate-500">(Edit the sentence below to make it correct.)</span></p>
       <HindiInput value={text} onChange={setText} disabled={locked} />
       {!locked && <Btn onClick={check} wide disabled={hasRoman(text)}>जाँचो ✓</Btn>}
@@ -270,6 +272,7 @@ function Tiles({ task, profile, locked, onSubmit }) {
   }
   return (
     <div className="space-y-4">
+      <En>{task.modelEn}</En>
       <div className="bg-white rounded-2xl p-4 min-h-20 flex flex-wrap gap-2 items-center border-2 border-dashed border-indigo-300">
         {built.length === 0 && <span className="text-slate-400">यहाँ वाक्य बनेगा…</span>}
         {built.map((i, k) => <button key={k} disabled={locked} onClick={() => setBuilt(b => b.filter(x => x !== i))} className="px-4 py-2 text-xl rounded-xl bg-indigo-600 text-white">{task.tiles[i]}</button>)}
@@ -304,7 +307,9 @@ function Speak({ task, profile, locked, onSubmit, setGender }) {
       <div className="bg-white rounded-2xl p-4 text-xl flex items-center gap-2">
         <span className="flex-1 font-semibold">{q}</span><Speaker text={q} />
       </div>
+      <En>{task.questionEn}</En>
       <p className="text-sm text-slate-500">पूरा वाक्य बोलो, जैसे: "{eg}" · अपनी बोली में बोलो, कोई बात नहीं!</p>
+      <En>Say a full sentence, {task.exampleEn ?? 'e.g. "I go to school every day."'} Speak in your own way, that is fine!</En>
       {!locked && <details className="text-sm bg-white rounded-xl p-2"><summary className="cursor-pointer">तुमने चुना: <b>"{profile.gender === 'f' ? 'मैं जाती हूँ' : 'मैं जाता हूँ'}"</b> — बदलना है? (change)</summary><div className="pt-2"><GenderPick compact gender={profile.gender} setGender={setGender} /></div></details>}
       {canListen && (
         <button disabled={locked || state === 'listening'} onClick={mic}
