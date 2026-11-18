@@ -55,9 +55,9 @@ Children in Hindi-medium government schools in urban settlements often speak a r
 
 ### Concept explanation (screen "चलो समझते हैं")
 Three picture cards, read aloud on tap, with the agreeing ending highlighted (**-आ blue**, **-ई pink**):
-1. 👦 👧 *लड़का अच्छ**ा** है। लड़की अच्छ**ी** है।* — 💡 लड़का → -आ, लड़की → -ई
-2. 🐎 🚌 *घोड़ा आ**या**। बस आ**ई**।* — 💡 चीज़ों का भी लिंग होता है! बस स्त्रीलिंग है।
-3. 💧 📕 *पानी ठंड**ा** है। मेरी किताब अच्छ**ी** है।* — 💡 पानी के अंत में -ई है, फिर भी पुल्लिंग!
+1. 👦 👧 *लड़का अच्छा है। लड़की अच्छी है।* — 💡 लड़का → -आ, लड़की → -ई
+2. 🐎 🚌 *घोड़ा आया। बस आई।* — 💡 चीज़ों का भी लिंग होता है! बस स्त्रीलिंग है।
+3. 💧 📕 *पानी ठंडा है। मेरी किताब अच्छी है।* — 💡 पानी के अंत में -ई है, फिर भी पुल्लिंग!
 
 **Rule (kept jargon-free):** 📌 *जिसकी बात हो रही है, उसी से शब्द का अंत बदलता है।* (small print: संज्ञा का लिंग → विशेषण और क्रिया का अंत)
 
@@ -67,7 +67,7 @@ Three picture cards, read aloud on tap, with the agreeing ending highlighted (**
 |---|---|---|---|---|
 | 1 | Multiple choice | 💧 *पानी ___ है।* ठंडा / ठंडी | **ठंडा** | M1, O2 |
 | 2 | Multiple choice | 📕 *मेरी किताब बहुत ___ है।* अच्छा / अच्छी | **अच्छी** | M2, O2 |
-| 3 | Sorting (drag-and-drop or tap) | पानी, किताब, घोड़ा, बस, दही, नदी → पुल्लिंग ("मेरा ___") / स्त्रीलिंग ("मेरी ___"), with a worked example (👦 लड़का → मेरा लड़का) | **पुल्लिंग:** पानी, घोड़ा, दही · **स्त्रीलिंग:** किताब, बस, नदी | O1, M1+M2 |
+| 3 | Sorting (drag-and-drop or tap) | पानी, किताब, घोड़ा, बस, दही, नदी → पुल्लिंग (मेरा …) / स्त्रीलिंग (मेरी …), with a worked example (👦 लड़का → मेरा लड़का) | **पुल्लिंग:** पानी, घोड़ा, दही · **स्त्रीलिंग:** किताब, बस, नदी | O1, M1+M2 |
 | 4 | Typed correction (on-screen Hindi keyboard / Roman→Hindi) | ~~बस आया।~~ → write it correctly | **बस आई।** | O2, M2, spelling |
 | 5 | Reasoning choice ("क्यों?") | *"बस आया" को हमने "बस आई" क्यों किया?* (a) क्योंकि "बस" स्त्रीलिंग है — "मेरी बस" (b) क्योंकि वाक्य लिखने वाली लड़की है (c) क्योंकि "आई" लिखना ज़्यादा सुंदर लगता है | **(a)** | O3 |
 | 6 | Word tiles | 👧⚽ build from: रहा · लड़की · है · खेल · रही | **लड़की खेल रही है** | O2 |
@@ -231,7 +231,7 @@ No large language model is used (no API key was available, and deterministic che
 2. **Dialect variation → accepted and bridged:** *हम रोज स्कूल जाते हैं* (Bhojpuri-influenced हम for "I", used by girls too) → ✓ with full stars, plus a blue "school Hindi" tip that is explicitly *not an error* and worded "if you mean only yourself", because हम also means "we". This respects the home language while giving Rani the school form she needs to stop getting red marks.
 3. **Pronunciation variation → accepted:** *रोज/रोज़*, *लडकी/लड़की*, *जरूर/ज़रूर* — removed by normalisation before checking, with the note "दोनों ठीक हैं".
 
-**How C4 and L2 shaped the design.** Ten-minute turns on a shared tablet led to: per-child profiles on one device (no login), a visible timer, auto-save every second, pause/resume at the exact step, an end-session option, and a sequence budgeted at ≈ 9 minutes (7 short tasks; remedial items capped at two). The first-generation, slow-reading, noisy-room context led to: pictures and 🔊 on everything, slowed speech, short jargon-free Hindi with grammar terms only in small print, large tap targets, drag-or-tap sorting, an on-screen Hindi keyboard and Roman→Hindi typing (Rani cannot type Devanagari on a tablet keyboard), a typed fallback whenever speech fails, and kind, private feedback with stars that also reward correcting yourself.
+**How C4 and L2 shaped the design.** Ten-minute turns on a shared tablet led to: per-child profiles on one device (no login), a visible timer, auto-save every second, pause/resume at the exact step, an end-session option, and a sequence budgeted at ≈ 9 minutes (7 short tasks; at most one re-teach card + item per misconception type; extra practice capped at 3). The first-generation, slow-reading, noisy-room context led to: pictures and 🔊 on everything, slowed speech, short jargon-free Hindi with grammar terms only in small print, large tap targets, drag-or-tap sorting, an on-screen Hindi keyboard and Roman→Hindi typing (Rani cannot type Devanagari on a tablet keyboard), a typed fallback whenever speech fails, and kind, private feedback with stars that also reward correcting yourself.
 
 ---
 
@@ -254,7 +254,7 @@ Data would be exported per child from the tablet (or synced to a teacher view in
 
 **Tools used:** Claude Code (Claude Opus 5.5) in VS Code, for planning, code generation, testing, git/Vercel commands and drafting this report. No other AI tools.
 
-**Chat log (in order):** the full Claude Code session is exported and attached ( `/export` file / share link: _[add link]_ ). Main steps in order:
+**Chat log (in order):** the full Claude Code session is exported and attached (exported transcript attached on Moodle: "Claude log ET617.txt"). Main steps in order:
 1. Pre-exam setup: GitHub CLI and Vercel login, a throwaway trial deploy (deleted before the exam; no code reused).
 2. Exam start: shared the exam PDF; created the repo `et617-endsem-23B2215` (18:17).
 3. Chose the card **P2-T2-L2-C4**; AI drafted DESIGN.md (problem, outcomes, persona, content plan), committed 18:25.
@@ -268,4 +268,4 @@ Data would be exported per child from the tablet (or synced to a teacher view in
 - *What the AI did well:* fast scaffolding and deployment, a complete first version of the checker with tests, and keeping commits small and frequent.
 - *Where my judgement changed the AI's output:* (1) the AI first asked "तुम लड़का हो या लड़की?" — I found it confusing and personal, so it became a language choice (*"मैं जाता हूँ" / "मैं जाती हूँ"*), changeable on the speaking screen; (2) I asked whether the dialect form should also show the school form, and we designed the "accept and bridge" tip instead of either ignoring or correcting it; (3) the tap-to-sort design was confusing in testing, so I asked for drag-and-drop with a worked example; (4) I found that Devanagari typing is impractical for the persona, leading to the on-screen keyboard and Roman→Hindi conversion; (5) my testing found that the keyboard did not work in the name field (it submitted the form), which was then fixed; (6) I questioned whether stars were needed — we kept them because the persona is motivated by praise, but changed the rule so they also reward self-correction.
 - *Verification:* every AI-generated rule was tested against real sentences (16 automated cases); a checker bug (bare verb stems such as जा read as masculine) was caught by these tests. I could not test speech recognition with a microphone in the exam hall, so the typed fallback was made automatic and the limitation is stated in D6.
-- *Limits and risks:* the noun lexicon is small (32 words) and the checker handles simple sentences only (no ने-constructions); speech recognition depends on Chrome and Google's servers. Grammar content was checked by me against standard Hindi usage.
+- *Limits and risks:* the noun lexicon is small (32 words) and the checker handles simple sentences only (no ने-constructions); speech recognition depends on Chrome and Google's servers.
